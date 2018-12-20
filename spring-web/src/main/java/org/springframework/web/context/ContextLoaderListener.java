@@ -20,6 +20,8 @@ import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 
 /**
+ * 该类为springmvc监听web容器启动和销毁监听器，当监听到web容器启动，默认会创建一个WebApplicationContext，
+ * 该对象为SpringMVC的根容器对象
  * Bootstrap listener to start up and shut down Spring's root {@link WebApplicationContext}.
  * Simply delegates to {@link ContextLoader} as well as to {@link ContextCleanupListener}.
  *
@@ -100,6 +102,7 @@ public class ContextLoaderListener extends ContextLoader implements ServletConte
 	 */
 	@Override
 	public void contextInitialized(ServletContextEvent event) {
+		//初始化WebApplicationContext根容器对象
 		initWebApplicationContext(event.getServletContext());
 	}
 
@@ -109,7 +112,9 @@ public class ContextLoaderListener extends ContextLoader implements ServletConte
 	 */
 	@Override
 	public void contextDestroyed(ServletContextEvent event) {
+		//销毁根容器对象
 		closeWebApplicationContext(event.getServletContext());
+		//依次销毁ServletContext中所有属性中实现DisposableBean对象的destroy方法
 		ContextCleanupListener.cleanupAttributes(event.getServletContext());
 	}
 
