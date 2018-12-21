@@ -23,6 +23,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.springframework.lang.Nullable;
 
 /**
+ * 本地（国际）化解析接口
  * Interface for web-based locale resolution strategies that allows for
  * both locale resolution via the request and locale modification via
  * request and response.
@@ -53,6 +54,7 @@ import org.springframework.lang.Nullable;
 public interface LocaleResolver {
 
 	/**
+	 * 解析request中包含的本地化信息
 	 * Resolve the current locale via the given request.
 	 * Can return a default locale as fallback in any case.
 	 * @param request the request to resolve the locale for
@@ -61,6 +63,7 @@ public interface LocaleResolver {
 	Locale resolveLocale(HttpServletRequest request);
 
 	/**
+	 * 设置本地化信息
 	 * Set the current locale to the given one.
 	 * @param request the request to be used for locale modification
 	 * @param response the response to be used for locale modification
