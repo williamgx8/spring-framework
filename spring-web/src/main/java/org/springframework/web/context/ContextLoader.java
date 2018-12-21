@@ -332,7 +332,8 @@ public class ContextLoader {
 	}
 
 	/**
-	 * 创建WebApplicationContext
+	 * 创建根WebApplicationContext
+	 * <p>
 	 * Instantiate the root WebApplicationContext for this loader, either the
 	 * default context class or a custom context class if specified.
 	 * <p>This implementation expects custom contexts to implement the

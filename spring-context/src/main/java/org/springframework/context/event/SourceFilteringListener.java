@@ -39,6 +39,7 @@ public class SourceFilteringListener implements GenericApplicationListener, Smar
 	private final Object source;
 
 	@Nullable
+	//被包装的真实监听器
 	private GenericApplicationListener delegate;
 
 
@@ -66,10 +67,14 @@ public class SourceFilteringListener implements GenericApplicationListener, Smar
 		this.source = source;
 	}
 
-
+	/**
+	 * 事件触发逻辑
+	 * @param event the event to respond to
+	 */
 	@Override
 	public void onApplicationEvent(ApplicationEvent event) {
 		if (event.getSource() == this.source) {
+			//内部处理事件方法
 			onApplicationEventInternal(event);
 		}
 	}
@@ -106,6 +111,7 @@ public class SourceFilteringListener implements GenericApplicationListener, Smar
 			throw new IllegalStateException(
 					"Must specify a delegate object or override the onApplicationEventInternal method");
 		}
+		//交给被包装类处理事件
 		this.delegate.onApplicationEvent(event);
 	}
 
