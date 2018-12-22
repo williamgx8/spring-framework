@@ -125,20 +125,29 @@ public class HandlerExecutionChain {
 
 
 	/**
+	 * 调用拦截器数组中每一个拦截器的preHandler方法
+	 * <p></p>
 	 * Apply preHandle methods of registered interceptors.
 	 * @return {@code true} if the execution chain should proceed with the
 	 * next interceptor or the handler itself. Else, DispatcherServlet assumes
 	 * that this interceptor has already dealt with the response itself.
 	 */
 	boolean applyPreHandle(HttpServletRequest request, HttpServletResponse response) throws Exception {
+		//所有拦截器
 		HandlerInterceptor[] interceptors = getInterceptors();
+		//拦截器不为空就执行
 		if (!ObjectUtils.isEmpty(interceptors)) {
 			for (int i = 0; i < interceptors.length; i++) {
 				HandlerInterceptor interceptor = interceptors[i];
+				//调用preHandler，如果返回true，就继续往下循环，否则返回false，终止调用
 				if (!interceptor.preHandle(request, response, this.handler)) {
+					//preHandler返回false还会调用下，之前调用过拦截器的afterCompletion方法
 					triggerAfterCompletion(request, response, null);
+					//终止流程
 					return false;
 				}
+				//没成功调用一次就将拦截器计数加一，只要为了中途失败，再次从0-interceptorIndex对应的
+				//拦截器中调用afterCompletion
 				this.interceptorIndex = i;
 			}
 		}
@@ -146,15 +155,17 @@ public class HandlerExecutionChain {
 	}
 
 	/**
+	 * 调用拦截器数组中每一个拦截器的postHandler方法
 	 * Apply postHandle methods of registered interceptors.
 	 */
 	void applyPostHandle(HttpServletRequest request, HttpServletResponse response, @Nullable ModelAndView mv)
 			throws Exception {
-
+		//拦截器数组
 		HandlerInterceptor[] interceptors = getInterceptors();
 		if (!ObjectUtils.isEmpty(interceptors)) {
 			for (int i = interceptors.length - 1; i >= 0; i--) {
 				HandlerInterceptor interceptor = interceptors[i];
+				//依次调用postHandler
 				interceptor.postHandle(request, response, this.handler, mv);
 			}
 		}
