@@ -27,6 +27,7 @@ import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.ModelAndView;
 
 /**
+ * 提供根据请求路径是否满足某些规则来应用拦截的拦截器
  * Contains and delegates calls to a {@link HandlerInterceptor} along with
  * include (and optionally exclude) path patterns to which the interceptor should apply.
  * Also provides matching logic to test if the interceptor applies to a given request path.

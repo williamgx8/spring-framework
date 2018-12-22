@@ -71,20 +71,21 @@ public abstract class AbstractHandlerMapping extends WebApplicationObjectSupport
 		implements HandlerMapping, Ordered, BeanNameAware {
 
 	@Nullable
+	//默认处理器映射器
 	private Object defaultHandler;
-
+	//url路径工具
 	private UrlPathHelper urlPathHelper = new UrlPathHelper();
-
+	//路径匹配器
 	private PathMatcher pathMatcher = new AntPathMatcher();
-
+	//配置的拦截器数组
 	private final List<Object> interceptors = new ArrayList<>();
-
+	//初始化后的拦截器数组
 	private final List<HandlerInterceptor> adaptedInterceptors = new ArrayList<>();
-
+	//跨域配置
 	private CorsConfigurationSource corsConfigurationSource = new UrlBasedCorsConfigurationSource();
-
+	//跨域处理器
 	private CorsProcessor corsProcessor = new DefaultCorsProcessor();
-
+	//顺序
 	private int order = Ordered.LOWEST_PRECEDENCE;  // default: same as non-Ordered
 
 	@Nullable
@@ -283,14 +284,19 @@ public abstract class AbstractHandlerMapping extends WebApplicationObjectSupport
 
 
 	/**
+	 * 初始化context上下文
 	 * Initializes the interceptors.
 	 * @see #extendInterceptors(java.util.List)
 	 * @see #initInterceptors()
 	 */
 	@Override
 	protected void initApplicationContext() throws BeansException {
+		//用于给子类扩展interceptor的方法
 		extendInterceptors(this.interceptors);
+		//获取已被spring托管的MappedInterceptor类型的拦截器，放入adaptedInterceptors
+		//这些拦截器可以理解为容器内部提供的拦截器
 		detectMappedInterceptors(this.adaptedInterceptors);
+		//初始化拦截器
 		initInterceptors();
 	}
 
@@ -307,6 +313,8 @@ public abstract class AbstractHandlerMapping extends WebApplicationObjectSupport
 	}
 
 	/**
+	 * 扫描spring中所有MappedInterceptor类型的拦截器，放入参数mappedInterceptors内，主要是为了扫描{@code <mvc:interceptor/>}配置的拦截器
+	 * <p></p>
 	 * Detect beans of type {@link MappedInterceptor} and add them to the list of mapped interceptors.
 	 * <p>This is called in addition to any {@link MappedInterceptor MappedInterceptors} that may have been provided
 	 * via {@link #setInterceptors}, by default adding all beans of type {@link MappedInterceptor}
@@ -320,6 +328,7 @@ public abstract class AbstractHandlerMapping extends WebApplicationObjectSupport
 	}
 
 	/**
+	 * 将成员变量interceptors中的拦截器都放入adaptedInterceptors中
 	 * Initialize the specified interceptors, checking for {@link MappedInterceptor MappedInterceptors} and
 	 * adapting {@link HandlerInterceptor}s and {@link WebRequestInterceptor HandlerInterceptor}s and
 	 * {@link WebRequestInterceptor}s if necessary.
@@ -339,6 +348,7 @@ public abstract class AbstractHandlerMapping extends WebApplicationObjectSupport
 	}
 
 	/**
+	 * 将不同的拦截器类型转换成HandlerInterceptor
 	 * Adapt the given interceptor object to the {@link HandlerInterceptor} interface.
 	 * <p>By default, the supported interceptor types are {@link HandlerInterceptor}
 	 * and {@link WebRequestInterceptor}. Each given {@link WebRequestInterceptor}
@@ -351,12 +361,15 @@ public abstract class AbstractHandlerMapping extends WebApplicationObjectSupport
 	 * @see WebRequestHandlerInterceptorAdapter
 	 */
 	protected HandlerInterceptor adaptInterceptor(Object interceptor) {
+		//本来就是HandlerInterceptor直接返回
 		if (interceptor instanceof HandlerInterceptor) {
 			return (HandlerInterceptor) interceptor;
 		}
+		//如果是WebRequestInterceptor，用WebRequestHandlerInterceptorAdapter适配器适配成了HandlerInterceptor类型返回
 		else if (interceptor instanceof WebRequestInterceptor) {
 			return new WebRequestHandlerInterceptorAdapter((WebRequestInterceptor) interceptor);
 		}
+		//不支持其他类型
 		else {
 			throw new IllegalArgumentException("Interceptor type not supported: " + interceptor.getClass().getName());
 		}
