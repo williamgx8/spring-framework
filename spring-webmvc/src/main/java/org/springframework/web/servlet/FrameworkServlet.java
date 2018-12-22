@@ -992,16 +992,20 @@ public abstract class FrameworkServlet extends HttpServletBean implements Applic
 	@Override
 	protected void service(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
-
+		//获得请求方法
 		HttpMethod httpMethod = HttpMethod.resolve(request.getMethod());
 		if (httpMethod == HttpMethod.PATCH || httpMethod == null) {
+			//处理PATCH和空请求
 			processRequest(request, response);
 		} else {
+			//非PATCH和非空请求，请求父类HttpServlet#service，内部又会根据不同请求方式
+			//调用doXXX，这些方法又由子类FrameworkServlet处理
 			super.service(request, response);
 		}
 	}
 
 	/**
+	 * 调用processRequest(HttpServletRequest, HttpServletResponse)统一处理
 	 * Delegate GET requests to processRequest/doService.
 	 * <p>Will also be invoked by HttpServlet's default implementation of {@code doHead},
 	 * with a {@code NoBodyResponse} that just captures the content length.
@@ -1017,6 +1021,7 @@ public abstract class FrameworkServlet extends HttpServletBean implements Applic
 	}
 
 	/**
+	 * 调用processRequest(HttpServletRequest, HttpServletResponse)统一处理
 	 * Delegate POST requests to {@link #processRequest}.
 	 *
 	 * @see #doService
@@ -1029,6 +1034,7 @@ public abstract class FrameworkServlet extends HttpServletBean implements Applic
 	}
 
 	/**
+	 * 调用processRequest(HttpServletRequest, HttpServletResponse)统一处理
 	 * Delegate PUT requests to {@link #processRequest}.
 	 *
 	 * @see #doService
@@ -1041,6 +1047,7 @@ public abstract class FrameworkServlet extends HttpServletBean implements Applic
 	}
 
 	/**
+	 * 调用processRequest(HttpServletRequest, HttpServletResponse)统一处理
 	 * Delegate DELETE requests to {@link #processRequest}.
 	 *
 	 * @see #doService
@@ -1063,14 +1070,18 @@ public abstract class FrameworkServlet extends HttpServletBean implements Applic
 	protected void doOptions(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
 
+		//允许OPTION请求交由doService处理或者请求包含跨域
 		if (this.dispatchOptionsRequest || CorsUtils.isPreFlightRequest(request)) {
+			//又processRequest处理器请求
 			processRequest(request, response);
+			//请求头包含Allow直接结束
 			if (response.containsHeader("Allow")) {
 				// Proper OPTIONS response coming from a handler - we're done.
 				return;
 			}
 		}
 
+		//父类处理OPTION请求，并在Allow请求头后加上PATCH
 		// Use response wrapper in order to always add PATCH to the allowed methods
 		super.doOptions(request, new HttpServletResponseWrapper(response) {
 			@Override
@@ -1094,13 +1105,17 @@ public abstract class FrameworkServlet extends HttpServletBean implements Applic
 	protected void doTrace(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
 
+		//允许doService处理TRACE请求
 		if (this.dispatchTraceRequest) {
+			//处理请求
 			processRequest(request, response);
+			//Content-Type为message/http就不交由父类处理，直接结束
 			if ("message/http".equals(response.getContentType())) {
 				// Proper TRACE response coming from a handler - we're done.
 				return;
 			}
 		}
+		//父类处理TRACE请求
 		super.doTrace(request, response);
 	}
 
@@ -1112,23 +1127,29 @@ public abstract class FrameworkServlet extends HttpServletBean implements Applic
 	protected final void processRequest(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
 
+		//开始时间
 		long startTime = System.currentTimeMillis();
 		Throwable failureCause = null;
 
+		//本地化上下文
 		LocaleContext previousLocaleContext = LocaleContextHolder.getLocaleContext();
 		LocaleContext localeContext = buildLocaleContext(request);
 
+		//请求参数
 		RequestAttributes previousAttributes = RequestContextHolder.getRequestAttributes();
 		ServletRequestAttributes requestAttributes = buildRequestAttributes(request, response,
 				previousAttributes);
 
+		//spring异步处理
 		WebAsyncManager asyncManager = WebAsyncUtils.getAsyncManager(request);
 		asyncManager.registerCallableInterceptor(FrameworkServlet.class.getName(),
 				new RequestBindingInterceptor());
 
+		//初始化本地上下文和请求上下文
 		initContextHolders(request, localeContext, requestAttributes);
 
 		try {
+			//处理请求
 			doService(request, response);
 		} catch (ServletException | IOException ex) {
 			failureCause = ex;
@@ -1137,11 +1158,14 @@ public abstract class FrameworkServlet extends HttpServletBean implements Applic
 			failureCause = ex;
 			throw new NestedServletException("Request processing failed", ex);
 		} finally {
+			//重置各种上下文
 			resetContextHolders(request, previousLocaleContext, previousAttributes);
 			if (requestAttributes != null) {
 				requestAttributes.requestCompleted();
 			}
+			//日志记录请求结果
 			logResult(request, response, failureCause, asyncManager);
+			//发布请求处理事件ServletRequestHandledEvent
 			publishRequestHandledEvent(request, response, startTime, failureCause);
 		}
 	}
@@ -1257,13 +1281,23 @@ public abstract class FrameworkServlet extends HttpServletBean implements Applic
 		}
 	}
 
+	/**
+	 * 发布ServletRequestHandledEvent事件
+	 * @param request
+	 * @param response
+	 * @param startTime
+	 * @param failureCause
+	 */
 	private void publishRequestHandledEvent(HttpServletRequest request,
 											HttpServletResponse response,
 											long startTime, @Nullable Throwable failureCause) {
 
+		//允许发布事件，并且WebApplicationContext非空
 		if (this.publishEvents && this.webApplicationContext != null) {
 			// Whether or not we succeeded, publish an event.
+			//请求处理时长
 			long processingTime = System.currentTimeMillis() - startTime;
+			//将请求的各种参数以及时间等信息封装ServletRequestHandlerEvent发布出去
 			this.webApplicationContext.publishEvent(
 					new ServletRequestHandledEvent(this,
 							request.getRequestURI(), request.getRemoteAddr(),
