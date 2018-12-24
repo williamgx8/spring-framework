@@ -45,9 +45,12 @@ public final class MethodIntrospector {
 
 
 	/**
+	 * 按照metadataLookup的检查方式查找targetType目标类中复合检查规则的方法，返回key为复合条件的method，value为metadataLookup指定类型的映射
+	 * <p></p>
 	 * Select methods on the given target type based on the lookup of associated metadata.
 	 * <p>Callers define methods of interest through the {@link MetadataLookup} parameter,
 	 * allowing to collect the associated metadata into the result map.
+	 *
 	 * @param targetType the target type to search methods on
 	 * @param metadataLookup a {@link MetadataLookup} callback to inspect methods of interest,
 	 * returning non-null metadata to be associated with a given method if there is a match,
@@ -55,30 +58,45 @@ public final class MethodIntrospector {
 	 * @return the selected methods associated with their metadata (in the order of retrieval),
 	 * or an empty map in case of no match
 	 */
-	public static <T> Map<Method, T> selectMethods(Class<?> targetType, final MetadataLookup<T> metadataLookup) {
+	public static <T> Map<Method, T> selectMethods(Class<?> targetType,
+			final MetadataLookup<T> metadataLookup) {
+		//返回的方法映射
 		final Map<Method, T> methodMap = new LinkedHashMap<>();
+		//处理器类型集合，处理器可能是targetType接口或者父类中的任何一种，所以需要保存继承关系类型
 		Set<Class<?>> handlerTypes = new LinkedHashSet<>();
 		Class<?> specificHandlerType = null;
 
+		//非JDK代理类
 		if (!Proxy.isProxyClass(targetType)) {
+			//再去除一次CGLIB产生的$$，只获取CGLIB的父类
 			specificHandlerType = ClassUtils.getUserClass(targetType);
 			handlerTypes.add(specificHandlerType);
 		}
+		//将targetType的所有接口放入handlerTypes
 		handlerTypes.addAll(ClassUtils.getAllInterfacesForClassAsSet(targetType));
 
 		for (Class<?> currentHandlerType : handlerTypes) {
-			final Class<?> targetClass = (specificHandlerType != null ? specificHandlerType : currentHandlerType);
+			//如果存在具体的处理器类型，就将该类型作为目标类型，否则拿当前遍历到的类型作为目标类型
+			final Class<?> targetClass = (specificHandlerType != null ? specificHandlerType
+					: currentHandlerType);
 
+			//设置反射方法钩子，当调用currentHandlerType类型对象的所有方法要执行的内容
 			ReflectionUtils.doWithMethods(currentHandlerType, method -> {
-				Method specificMethod = ClassUtils.getMostSpecificMethod(method, targetClass);
-				T result = metadataLookup.inspect(specificMethod);
-				if (result != null) {
-					Method bridgedMethod = BridgeMethodResolver.findBridgedMethod(specificMethod);
-					if (bridgedMethod == specificMethod || metadataLookup.inspect(bridgedMethod) == null) {
-						methodMap.put(specificMethod, result);
-					}
-				}
-			}, ReflectionUtils.USER_DECLARED_METHODS);
+						//当前调用的方法
+						Method specificMethod = ClassUtils.getMostSpecificMethod(method, targetClass);
+						//进行方法的检查筛选得到处理后的结果
+						T result = metadataLookup.inspect(specificMethod);
+						if (result != null) {
+							//获得对应的被桥接方法
+							Method bridgedMethod = BridgeMethodResolver.findBridgedMethod(specificMethod);
+							if (bridgedMethod == specificMethod
+									|| metadataLookup.inspect(bridgedMethod) == null) {
+								methodMap.put(specificMethod, result);
+							}
+						}
+					},
+					//过滤掉桥接方法和属于Object的方法
+					ReflectionUtils.USER_DECLARED_METHODS);
 		}
 
 		return methodMap;
@@ -87,14 +105,17 @@ public final class MethodIntrospector {
 	/**
 	 * Select methods on the given target type based on a filter.
 	 * <p>Callers define methods of interest through the {@code MethodFilter} parameter.
+	 *
 	 * @param targetType the target type to search methods on
 	 * @param methodFilter a {@code MethodFilter} to help
 	 * recognize handler methods of interest
 	 * @return the selected methods, or an empty set in case of no match
 	 */
-	public static Set<Method> selectMethods(Class<?> targetType, final ReflectionUtils.MethodFilter methodFilter) {
+	public static Set<Method> selectMethods(Class<?> targetType,
+			final ReflectionUtils.MethodFilter methodFilter) {
 		return selectMethods(targetType,
-				(MetadataLookup<Boolean>) method -> (methodFilter.matches(method) ? Boolean.TRUE : null)).keySet();
+				(MetadataLookup<Boolean>) method -> (methodFilter.matches(method) ? Boolean.TRUE
+						: null)).keySet();
 	}
 
 	/**
@@ -103,6 +124,7 @@ public final class MethodIntrospector {
 	 * on one of the target type's interfaces or on the target type itself.
 	 * <p>Matches on user-declared interfaces will be preferred since they are likely
 	 * to contain relevant metadata that corresponds to the method on the target class.
+	 *
 	 * @param method the method to check
 	 * @param targetType the target type to search methods on
 	 * (typically an interface-based JDK proxy)
@@ -120,20 +142,18 @@ public final class MethodIntrospector {
 			for (Class<?> ifc : targetType.getInterfaces()) {
 				try {
 					return ifc.getMethod(methodName, parameterTypes);
-				}
-				catch (NoSuchMethodException ex) {
+				} catch (NoSuchMethodException ex) {
 					// Alright, not on this interface then...
 				}
 			}
 			// A final desperate attempt on the proxy class itself...
 			return targetType.getMethod(methodName, parameterTypes);
-		}
-		catch (NoSuchMethodException ex) {
+		} catch (NoSuchMethodException ex) {
 			throw new IllegalStateException(String.format(
 					"Need to invoke method '%s' declared on target class '%s', " +
-					"but not found in any interface(s) of the exposed proxy type. " +
-					"Either pull the method up to an interface or switch to CGLIB " +
-					"proxies by enforcing proxy-target-class mode in your configuration.",
+							"but not found in any interface(s) of the exposed proxy type. " +
+							"Either pull the method up to an interface or switch to CGLIB " +
+							"proxies by enforcing proxy-target-class mode in your configuration.",
 					method.getName(), method.getDeclaringClass().getSimpleName()));
 		}
 	}
@@ -141,6 +161,7 @@ public final class MethodIntrospector {
 
 	/**
 	 * A callback interface for metadata lookup on a given method.
+	 *
 	 * @param <T> the type of metadata returned
 	 */
 	@FunctionalInterface
@@ -148,6 +169,7 @@ public final class MethodIntrospector {
 
 		/**
 		 * Perform a lookup on the given method and return associated metadata, if any.
+		 *
 		 * @param method the method to inspect
 		 * @return non-null metadata to be associated with a method if there is a match,
 		 * or {@code null} for no match

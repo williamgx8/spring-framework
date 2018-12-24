@@ -56,18 +56,22 @@ public final class BridgeMethodResolver {
 	 * <p>It is safe to call this method passing in a non-bridge {@link Method} instance.
 	 * In such a case, the supplied {@link Method} instance is returned directly to the caller.
 	 * Callers are <strong>not</strong> required to check for bridging before calling this method.
+	 *
 	 * @param bridgeMethod the method to introspect
 	 * @return the original method (either the bridged method or the passed-in method
 	 * if no more specific one could be found)
 	 */
 	public static Method findBridgedMethod(Method bridgeMethod) {
+		//非桥接方法直接返回原始方法
 		if (!bridgeMethod.isBridge()) {
 			return bridgeMethod;
 		}
 
 		// Gather all methods with matching name and parameter size.
 		List<Method> candidateMethods = new ArrayList<>();
+		//桥接方法所在类所有声明方法
 		Method[] methods = ReflectionUtils.getAllDeclaredMethods(bridgeMethod.getDeclaringClass());
+		//获取桥接方法那些可能对应的非桥接方法
 		for (Method candidateMethod : methods) {
 			if (isBridgedCandidateFor(candidateMethod, bridgeMethod)) {
 				candidateMethods.add(candidateMethod);
@@ -75,19 +79,22 @@ public final class BridgeMethodResolver {
 		}
 
 		// Now perform simple quick check.
+		//只有一个肯定就是它
 		if (candidateMethods.size() == 1) {
 			return candidateMethods.get(0);
 		}
 
 		// Search for candidate match.
+		//存在多个候选还需要再次筛选被桥接方法
 		Method bridgedMethod = searchCandidates(candidateMethods, bridgeMethod);
+		//找到了直接返回
 		if (bridgedMethod != null) {
 			// Bridged method found...
 			return bridgedMethod;
-		}
-		else {
+		} else {
 			// A bridge method was passed in but we couldn't find the bridged method.
 			// Let's proceed with the passed-in method and hope for the best...
+			//没找到只好返回桥接方法
 			return bridgeMethod;
 		}
 	}
@@ -106,6 +113,7 @@ public final class BridgeMethodResolver {
 
 	/**
 	 * Searches for the bridged method in the given candidates.
+	 *
 	 * @param candidateMethods the List of candidate Methods
 	 * @param bridgeMethod the bridge method
 	 * @return the bridged method, or {@code null} if none found
@@ -118,12 +126,13 @@ public final class BridgeMethodResolver {
 		Method previousMethod = null;
 		boolean sameSig = true;
 		for (Method candidateMethod : candidateMethods) {
-			if (isBridgeMethodFor(bridgeMethod, candidateMethod, bridgeMethod.getDeclaringClass())) {
+			if (isBridgeMethodFor(bridgeMethod, candidateMethod,
+					bridgeMethod.getDeclaringClass())) {
 				return candidateMethod;
-			}
-			else if (previousMethod != null) {
+			} else if (previousMethod != null) {
 				sameSig = sameSig &&
-						Arrays.equals(candidateMethod.getGenericParameterTypes(), previousMethod.getGenericParameterTypes());
+						Arrays.equals(candidateMethod.getGenericParameterTypes(),
+								previousMethod.getGenericParameterTypes());
 			}
 			previousMethod = candidateMethod;
 		}
@@ -134,7 +143,8 @@ public final class BridgeMethodResolver {
 	 * Determines whether or not the bridge {@link Method} is the bridge for the
 	 * supplied candidate {@link Method}.
 	 */
-	static boolean isBridgeMethodFor(Method bridgeMethod, Method candidateMethod, Class<?> declaringClass) {
+	static boolean isBridgeMethodFor(Method bridgeMethod, Method candidateMethod,
+			Class<?> declaringClass) {
 		if (isResolvedTypeMatch(candidateMethod, bridgeMethod, declaringClass)) {
 			return true;
 		}
@@ -148,18 +158,21 @@ public final class BridgeMethodResolver {
 	 * are equal after resolving all types against the declaringType, otherwise
 	 * returns {@code false}.
 	 */
-	private static boolean isResolvedTypeMatch(Method genericMethod, Method candidateMethod, Class<?> declaringClass) {
+	private static boolean isResolvedTypeMatch(Method genericMethod, Method candidateMethod,
+			Class<?> declaringClass) {
 		Type[] genericParameters = genericMethod.getGenericParameterTypes();
 		Class<?>[] candidateParameters = candidateMethod.getParameterTypes();
 		if (genericParameters.length != candidateParameters.length) {
 			return false;
 		}
 		for (int i = 0; i < candidateParameters.length; i++) {
-			ResolvableType genericParameter = ResolvableType.forMethodParameter(genericMethod, i, declaringClass);
+			ResolvableType genericParameter = ResolvableType
+					.forMethodParameter(genericMethod, i, declaringClass);
 			Class<?> candidateParameter = candidateParameters[i];
 			if (candidateParameter.isArray()) {
 				// An array type: compare the component type.
-				if (!candidateParameter.getComponentType().equals(genericParameter.getComponentType().toClass())) {
+				if (!candidateParameter.getComponentType()
+						.equals(genericParameter.getComponentType().toClass())) {
 					return false;
 				}
 			}
@@ -174,6 +187,7 @@ public final class BridgeMethodResolver {
 	/**
 	 * Searches for the generic {@link Method} declaration whose erased signature
 	 * matches that of the supplied bridge method.
+	 *
 	 * @throws IllegalStateException if the generic declaration cannot be found
 	 */
 	@Nullable
@@ -188,7 +202,8 @@ public final class BridgeMethodResolver {
 			superclass = superclass.getSuperclass();
 		}
 
-		Class<?>[] interfaces = ClassUtils.getAllInterfacesForClass(bridgeMethod.getDeclaringClass());
+		Class<?>[] interfaces = ClassUtils
+				.getAllInterfacesForClass(bridgeMethod.getDeclaringClass());
 		return searchInterfaces(interfaces, bridgeMethod);
 	}
 
@@ -198,8 +213,7 @@ public final class BridgeMethodResolver {
 			Method method = searchForMatch(ifc, bridgeMethod);
 			if (method != null && !method.isBridge()) {
 				return method;
-			}
-			else {
+			} else {
 				method = searchInterfaces(ifc.getInterfaces(), bridgeMethod);
 				if (method != null) {
 					return method;
@@ -218,8 +232,7 @@ public final class BridgeMethodResolver {
 	private static Method searchForMatch(Class<?> type, Method bridgeMethod) {
 		try {
 			return type.getDeclaredMethod(bridgeMethod.getName(), bridgeMethod.getParameterTypes());
-		}
-		catch (NoSuchMethodException ex) {
+		} catch (NoSuchMethodException ex) {
 			return null;
 		}
 	}
@@ -229,13 +242,15 @@ public final class BridgeMethodResolver {
 	 * the parameter and return types are the same, it is a 'visibility' bridge method
 	 * introduced in Java 6 to fix http://bugs.sun.com/view_bug.do?bug_id=6342411.
 	 * See also http://stas-blogspot.blogspot.com/2010/03/java-bridge-methods-explained.html
+	 *
 	 * @return whether signatures match as described
 	 */
 	public static boolean isVisibilityBridgeMethodPair(Method bridgeMethod, Method bridgedMethod) {
 		if (bridgeMethod == bridgedMethod) {
 			return true;
 		}
-		return (Arrays.equals(bridgeMethod.getParameterTypes(), bridgedMethod.getParameterTypes()) &&
+		return (Arrays.equals(bridgeMethod.getParameterTypes(), bridgedMethod.getParameterTypes())
+				&&
 				bridgeMethod.getReturnType().equals(bridgedMethod.getReturnType()));
 	}
 

@@ -62,32 +62,38 @@ import org.springframework.web.bind.annotation.ResponseStatus;
  */
 public class HandlerMethod {
 
-	/** Logger that is available to subclasses. */
+	/**
+	 * Logger that is available to subclasses.
+	 */
 	protected final Log logger = LogFactory.getLog(getClass());
 
 	private final Object bean;
 
 	@Nullable
 	private final BeanFactory beanFactory;
-
+	//mapping所在的类类型，比如{@code @RequestMapping}所在的类类型
 	private final Class<?> beanType;
-
+	//mapping修饰的方法
 	private final Method method;
-
+	//桥接方法
 	private final Method bridgedMethod;
-
+	//方法参数数组
 	private final MethodParameter[] parameters;
 
 	@Nullable
+	//响应码
 	private HttpStatus responseStatus;
 
 	@Nullable
+	//响应状态码原因
 	private String responseStatusReason;
 
 	@Nullable
+	//解析自哪个HandlerMethod对象
 	private HandlerMethod resolvedFromHandlerMethod;
 
 	@Nullable
+	//父接口方法的参数注解数组
 	private volatile List<Annotation[][]> interfaceParameterAnnotations;
 
 
@@ -108,9 +114,11 @@ public class HandlerMethod {
 
 	/**
 	 * Create an instance from a bean instance, method name, and parameter types.
+	 *
 	 * @throws NoSuchMethodException when the method cannot be found
 	 */
-	public HandlerMethod(Object bean, String methodName, Class<?>... parameterTypes) throws NoSuchMethodException {
+	public HandlerMethod(Object bean, String methodName, Class<?>... parameterTypes)
+			throws NoSuchMethodException {
 		Assert.notNull(bean, "Bean is required");
 		Assert.notNull(methodName, "Method name is required");
 		this.bean = bean;
@@ -133,14 +141,20 @@ public class HandlerMethod {
 		Assert.notNull(method, "Method is required");
 		this.bean = beanName;
 		this.beanFactory = beanFactory;
+		//根据beanName获得bean对象类型
 		Class<?> beanType = beanFactory.getType(beanName);
 		if (beanType == null) {
-			throw new IllegalStateException("Cannot resolve bean type for bean with name '" + beanName + "'");
+			throw new IllegalStateException(
+					"Cannot resolve bean type for bean with name '" + beanName + "'");
 		}
+		//如果是动态代理类，去除类形中$$后的部分
 		this.beanType = ClassUtils.getUserClass(beanType);
 		this.method = method;
+		//根据方法获被桥接的方法
 		this.bridgedMethod = BridgeMethodResolver.findBridgedMethod(method);
+		//初始化方法参数对象MethodParameter数组
 		this.parameters = initMethodParameters();
+		//初始化responseStatus和responseStatusReason属性
 		evaluateResponseStatus();
 	}
 
@@ -177,23 +191,38 @@ public class HandlerMethod {
 		this.resolvedFromHandlerMethod = handlerMethod;
 	}
 
+	/**
+	 * 初始化方法参数对象数组
+	 */
 	private MethodParameter[] initMethodParameters() {
+		//被桥接方法的参数个数
 		int count = this.bridgedMethod.getParameterCount();
+		//有多少个参数就有多少个MethodParameter对象
 		MethodParameter[] result = new MethodParameter[count];
 		for (int i = 0; i < count; i++) {
+			//将参数index、bridgedMethod等内容封装成HandlerMethodParameter
 			HandlerMethodParameter parameter = new HandlerMethodParameter(i);
+			//解析参数类型
 			GenericTypeResolver.resolveParameterType(parameter, this.beanType);
+			//放入集合
 			result[i] = parameter;
 		}
 		return result;
 	}
 
+	/**
+	 * 设置responseStatus和responseStatusReason
+	 */
 	private void evaluateResponseStatus() {
+		//获取方法上的@ResponseStatus注解
 		ResponseStatus annotation = getMethodAnnotation(ResponseStatus.class);
 		if (annotation == null) {
-			annotation = AnnotatedElementUtils.findMergedAnnotation(getBeanType(), ResponseStatus.class);
+			//方法上没有@ResponseStatus，找类上的
+			annotation = AnnotatedElementUtils
+					.findMergedAnnotation(getBeanType(), ResponseStatus.class);
 		}
 		if (annotation != null) {
+			//设置两个属性
 			this.responseStatus = annotation.code();
 			this.responseStatusReason = annotation.reason();
 		}
@@ -240,8 +269,9 @@ public class HandlerMethod {
 
 	/**
 	 * Return the specified response status, if any.
-	 * @since 4.3.8
+	 *
 	 * @see ResponseStatus#code()
+	 * @since 4.3.8
 	 */
 	@Nullable
 	protected HttpStatus getResponseStatus() {
@@ -250,8 +280,9 @@ public class HandlerMethod {
 
 	/**
 	 * Return the associated response status reason, if any.
-	 * @since 4.3.8
+	 *
 	 * @see ResponseStatus#reason()
+	 * @since 4.3.8
 	 */
 	@Nullable
 	protected String getResponseStatusReason() {
@@ -284,6 +315,7 @@ public class HandlerMethod {
 	 * if no annotation can be found on the given method itself.
 	 * <p>Also supports <em>merged</em> composed annotations with attribute
 	 * overrides as of Spring Framework 4.2.2.
+	 *
 	 * @param annotationType the type of annotation to introspect the method for
 	 * @return the annotation, or {@code null} if none found
 	 * @see AnnotatedElementUtils#findMergedAnnotation
@@ -295,9 +327,10 @@ public class HandlerMethod {
 
 	/**
 	 * Return whether the parameter is declared with the given annotation type.
+	 *
 	 * @param annotationType the annotation type to look for
-	 * @since 4.3
 	 * @see AnnotatedElementUtils#hasAnnotation
+	 * @since 4.3
 	 */
 	public <A extends Annotation> boolean hasMethodAnnotation(Class<A> annotationType) {
 		return AnnotatedElementUtils.hasAnnotation(this.method, annotationType);
@@ -313,21 +346,25 @@ public class HandlerMethod {
 	}
 
 	/**
+	 * 创建bean属性解析成功后的HandlerMethod
 	 * If the provided instance contains a bean name rather than an object instance,
 	 * the bean name is resolved before a {@link HandlerMethod} is created and returned.
 	 */
 	public HandlerMethod createWithResolvedBean() {
 		Object handler = this.bean;
+		//如果bean属性是handlerMethod对应类的名称，找到该名称对应的实例返回
 		if (this.bean instanceof String) {
 			Assert.state(this.beanFactory != null, "Cannot resolve bean name without BeanFactory");
 			String beanName = (String) this.bean;
 			handler = this.beanFactory.getBean(beanName);
 		}
+		//封装成HandlerMethod
 		return new HandlerMethod(this, handler);
 	}
 
 	/**
 	 * Return a short representation of this handler method for log message purposes.
+	 *
 	 * @since 4.3
 	 */
 	public String getShortLogMessage() {
@@ -363,7 +400,8 @@ public class HandlerMethod {
 		}
 		for (int i = 0; i < paramTypes.length; i++) {
 			if (paramTypes[i] !=
-					ResolvableType.forMethodParameter(candidate, i, this.method.getDeclaringClass()).resolve()) {
+					ResolvableType.forMethodParameter(candidate, i, this.method.getDeclaringClass())
+							.resolve()) {
 				return false;
 			}
 		}
@@ -393,11 +431,11 @@ public class HandlerMethod {
 		return this.method.toGenericString();
 	}
 
-
 	// Support methods for use in "InvocableHandlerMethod" sub-class variants..
 
 	@Nullable
-	protected static Object findProvidedArgument(MethodParameter parameter, @Nullable Object... providedArgs) {
+	protected static Object findProvidedArgument(MethodParameter parameter,
+			@Nullable Object... providedArgs) {
 		if (!ObjectUtils.isEmpty(providedArgs)) {
 			for (Object providedArg : providedArgs) {
 				if (parameter.getParameterType().isInstance(providedArg)) {
@@ -410,7 +448,8 @@ public class HandlerMethod {
 
 	protected static String formatArgumentError(MethodParameter param, String message) {
 		return "Could not resolve parameter [" + param.getParameterIndex() + "] in " +
-				param.getExecutable().toGenericString() + (StringUtils.hasText(message) ? ": " + message : "");
+				param.getExecutable().toGenericString() + (StringUtils.hasText(message) ? ": "
+				+ message : "");
 	}
 
 	/**
@@ -435,7 +474,8 @@ public class HandlerMethod {
 	protected String formatInvokeError(String text, Object[] args) {
 		String formattedArgs = IntStream.range(0, args.length)
 				.mapToObj(i -> (args[i] != null ?
-						"[" + i + "] [type=" + args[i].getClass().getName() + "] [value=" + args[i] + "]" :
+						"[" + i + "] [type=" + args[i].getClass().getName() + "] [value=" + args[i]
+								+ "]" :
 						"[" + i + "] [null]"))
 				.collect(Collectors.joining(",\n", " ", " "));
 		return text + "\n" +
@@ -533,7 +573,8 @@ public class HandlerMethod {
 
 		@Override
 		public Class<?> getParameterType() {
-			return (this.returnValue != null ? this.returnValue.getClass() : super.getParameterType());
+			return (this.returnValue != null ? this.returnValue.getClass()
+					: super.getParameterType());
 		}
 
 		@Override
