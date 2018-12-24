@@ -289,6 +289,7 @@ public class DispatcherServlet extends FrameworkServlet {
 	/** Additional logger to use when no mapped handler is found for a request. */
 	protected static final Log pageNotFoundLogger = LogFactory.getLog(PAGE_NOT_FOUND_LOG_CATEGORY);
 
+	//保存DispatcherServlet.properties中的配置
 	private static final Properties defaultStrategies;
 
 	static {
@@ -297,6 +298,7 @@ public class DispatcherServlet extends FrameworkServlet {
 		// by application developers.
 		try {
 			ClassPathResource resource = new ClassPathResource(DEFAULT_STRATEGIES_PATH, DispatcherServlet.class);
+			//加载并解析DispatcherServlet.properties中的内容
 			defaultStrategies = PropertiesLoaderUtils.loadProperties(resource);
 		} catch (IOException ex) {
 			throw new IllegalStateException("Could not load '" + DEFAULT_STRATEGIES_PATH + "': " + ex.getMessage());
@@ -599,6 +601,7 @@ public class DispatcherServlet extends FrameworkServlet {
 	}
 
 	/**
+	 * 初始化处理器映射器
 	 * Initialize the HandlerMappings used by this class.
 	 * <p>If no HandlerMapping beans are defined in the BeanFactory for this namespace,
 	 * we default to BeanNameUrlHandlerMapping.
@@ -606,18 +609,24 @@ public class DispatcherServlet extends FrameworkServlet {
 	private void initHandlerMappings(ApplicationContext context) {
 		this.handlerMappings = null;
 
+		//是否加载所有HandlerMapping
 		if (this.detectAllHandlerMappings) {
 			// Find all HandlerMappings in the ApplicationContext, including ancestor contexts.
+			//获得所有HandlerMapping映射
 			Map<String, HandlerMapping> matchingBeans =
 					BeanFactoryUtils.beansOfTypeIncludingAncestors(context, HandlerMapping.class, true, false);
 			if (!matchingBeans.isEmpty()) {
+				//所有HandlerMapping
 				this.handlerMappings = new ArrayList<>(matchingBeans.values());
 				// We keep HandlerMappings in sorted order.
+				//根据Order注解进行排序
 				AnnotationAwareOrderComparator.sort(this.handlerMappings);
 			}
 		} else {
 			try {
+				//从spring中获取key为handlerMapping的HandlerMapping
 				HandlerMapping hm = context.getBean(HANDLER_MAPPING_BEAN_NAME, HandlerMapping.class);
+				//变成集合
 				this.handlerMappings = Collections.singletonList(hm);
 			} catch (NoSuchBeanDefinitionException ex) {
 				// Ignore, we'll add a default HandlerMapping later.
@@ -626,6 +635,7 @@ public class DispatcherServlet extends FrameworkServlet {
 
 		// Ensure we have at least one HandlerMapping, by registering
 		// a default HandlerMapping if no other mappings are found.
+		//加载DispatcherServlet.properties中配置的HandlerMapping
 		if (this.handlerMappings == null) {
 			this.handlerMappings = getDefaultStrategies(context, HandlerMapping.class);
 			if (logger.isTraceEnabled()) {
@@ -853,6 +863,7 @@ public class DispatcherServlet extends FrameworkServlet {
 	}
 
 	/**
+	 * 默认加载DispatcherServlet.properties中指定strategyInterfaces类型的内容
 	 * Create a List of default strategy objects for the given strategy interface.
 	 * <p>The default implementation uses the "DispatcherServlet.properties" file (in the same
 	 * package as the DispatcherServlet class) to determine the class names. It instantiates
@@ -864,15 +875,21 @@ public class DispatcherServlet extends FrameworkServlet {
 	 */
 	@SuppressWarnings("unchecked")
 	protected <T> List<T> getDefaultStrategies(ApplicationContext context, Class<T> strategyInterface) {
+		//要获取类的名称
 		String key = strategyInterface.getName();
+		//从DispatcherServlet.properties中得到类名对应value
 		String value = defaultStrategies.getProperty(key);
 		if (value != null) {
+			//以逗号分隔获得类名数组
 			String[] classNames = StringUtils.commaDelimitedListToStringArray(value);
 			List<T> strategies = new ArrayList<>(classNames.length);
 			for (String className : classNames) {
 				try {
+					//根据类名加载类
 					Class<?> clazz = ClassUtils.forName(className, DispatcherServlet.class.getClassLoader());
+					//创建类的实例
 					Object strategy = createDefaultStrategy(context, clazz);
+					//加入到结果数组中
 					strategies.add((T) strategy);
 				} catch (ClassNotFoundException ex) {
 					throw new BeanInitializationException(
@@ -886,6 +903,7 @@ public class DispatcherServlet extends FrameworkServlet {
 			}
 			return strategies;
 		} else {
+			//未配置，返回空集合
 			return new LinkedList<>();
 		}
 	}
