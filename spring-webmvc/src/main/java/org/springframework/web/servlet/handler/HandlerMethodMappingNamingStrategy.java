@@ -19,6 +19,7 @@ package org.springframework.web.servlet.handler;
 import org.springframework.web.method.HandlerMethod;
 
 /**
+ * HandlerMethod映射的名称生成策略接口
  * A strategy for assigning a name to a handler method's mapping.
  *
  * <p>The strategy can be configured on
@@ -42,9 +43,10 @@ import org.springframework.web.method.HandlerMethod;
 public interface HandlerMethodMappingNamingStrategy<T> {
 
 	/**
+	 * 根据HandlerMethod和Mapping生成对应名称
 	 * Determine the name for the given HandlerMethod and mapping.
-	 * @param handlerMethod the handler method
-	 * @param mapping the mapping
+	 * @param handlerMethod the handler method 可以理解为被{@code @RequestMapping}注释的类、方法、方法参数等封装的对象
+	 * @param mapping the mapping 可以理解为{@code @RequestMapping}上配置的value、consumes等属性封装成的对象
 	 * @return the name
 	 */
 	String getName(HandlerMethod handlerMethod, T mapping);

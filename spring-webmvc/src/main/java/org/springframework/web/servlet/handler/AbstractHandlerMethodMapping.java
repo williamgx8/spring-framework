@@ -92,8 +92,9 @@ public abstract class AbstractHandlerMethodMapping<T> extends AbstractHandlerMap
 	private boolean detectHandlerMethodsInAncestorContexts = false;
 
 	@Nullable
+	//Mapping命名策略
 	private HandlerMethodMappingNamingStrategy<T> namingStrategy;
-
+	//Mapping注册表
 	private final MappingRegistry mappingRegistry = new MappingRegistry();
 
 
@@ -323,12 +324,15 @@ public abstract class AbstractHandlerMethodMapping<T> extends AbstractHandlerMap
 	 */
 	protected HandlerMethod createHandlerMethod(Object handler, Method method) {
 		HandlerMethod handlerMethod;
+		//handler为字符串，说明传的是HandlerMethod的类名
 		if (handler instanceof String) {
 			String beanName = (String) handler;
+			//封装成HandlerMethod，构造器内部会从spring中获得类名对应的类型
 			handlerMethod = new HandlerMethod(beanName,
 					obtainApplicationContext().getAutowireCapableBeanFactory(), method);
 		}
 		else {
+			//handler就是HandlerMethod类型
 			handlerMethod = new HandlerMethod(handler, method);
 		}
 		return handlerMethod;
@@ -523,15 +527,25 @@ public abstract class AbstractHandlerMethodMapping<T> extends AbstractHandlerMap
 	 * <p>Package-private for testing purposes.
 	 */
 	class MappingRegistry {
-
+		/**
+		 * Mapping和对应注册器的映射关系
+		 */
 		private final Map<T, MappingRegistration<T>> registry = new HashMap<>();
-
+		/**
+		 * Mapping和对应HandlerMethod的映射关系
+		 */
 		private final Map<T, HandlerMethod> mappingLookup = new LinkedHashMap<>();
-
+		/**
+		 * url与Mapping的一对多映射
+		 */
 		private final MultiValueMap<String, T> urlLookup = new LinkedMultiValueMap<>();
-
+		/**
+		 * Mapping的名称和对应的一组HandlerMethod的映射
+		 */
 		private final Map<String, List<HandlerMethod>> nameLookup = new ConcurrentHashMap<>();
-
+		/**
+		 * HandlerMethod和跨域配置的映射
+		 */
 		private final Map<HandlerMethod, CorsConfiguration> corsLookup = new ConcurrentHashMap<>();
 
 		private final ReentrantReadWriteLock readWriteLock = new ReentrantReadWriteLock();
@@ -569,6 +583,7 @@ public abstract class AbstractHandlerMethodMapping<T> extends AbstractHandlerMap
 		}
 
 		/**
+		 * 获得读锁
 		 * Acquire the read lock when using getMappings and getMappingsByUrl.
 		 */
 		public void acquireReadLock() {
@@ -576,44 +591,69 @@ public abstract class AbstractHandlerMethodMapping<T> extends AbstractHandlerMap
 		}
 
 		/**
+		 * 释放读锁
 		 * Release the read lock after using getMappings and getMappingsByUrl.
 		 */
 		public void releaseReadLock() {
 			this.readWriteLock.readLock().unlock();
 		}
 
+		/**
+		 * 注册RequestMapping
+		 * @param mapping 封装了url配置的映射对象，比如{@code @RequestMapping("/user/info/{id}")}
+		 * @param handler 分为两种：1.HandlerMethod对象，该对象中封装了mapping配置的类、方法等信息
+		 * 2. HandlerMethod对应的名称，可以通过名称解析出对应的bean
+		 * @param method mapping对应要映射的方法对象，比如{@code @RequestMapping}标注的方法
+		 */
 		public void register(T mapping, Object handler, Method method) {
+			//因为存在多线程对于成员变量的操作，需要加写锁
 			this.readWriteLock.writeLock().lock();
 			try {
+				//创建HandlerMethod
 				HandlerMethod handlerMethod = createHandlerMethod(handler, method);
+				//确保mapping和HandlerMethod的一一对应
 				assertUniqueMethodMapping(handlerMethod, mapping);
+				//放入mapping和HandlerMethod对应关系
 				this.mappingLookup.put(mapping, handlerMethod);
-
+				//获得mapping对应的url数组，如果路径中存在*或?不会返回
 				List<String> directUrls = getDirectUrls(mapping);
 				for (String url : directUrls) {
+					//将这些url都与当前mapping进行映射
 					this.urlLookup.add(url, mapping);
 				}
 
 				String name = null;
+				//存在命名策略
 				if (getNamingStrategy() != null) {
+					//根据HandlerMethod和Mapping由命名策略生成Mapping的名称
 					name = getNamingStrategy().getName(handlerMethod, mapping);
+					//将Mapping名称和HandlerMethod映射放入nameLookup中
 					addMappingName(name, handlerMethod);
 				}
-
+				//跨域处理
 				CorsConfiguration corsConfig = initCorsConfiguration(handler, method, mapping);
 				if (corsConfig != null) {
 					this.corsLookup.put(handlerMethod, corsConfig);
 				}
 
+				//创建一个Mapping、HandlerMethod的注册器，并添加Mapping和这个注册器的映射关系
 				this.registry.put(mapping, new MappingRegistration<>(mapping, handlerMethod, directUrls, name));
 			}
 			finally {
+				//释放写锁
 				this.readWriteLock.writeLock().unlock();
 			}
 		}
 
+		/**
+		 * 校验mapping对应的HandlerMethod必须是唯一的
+		 * @param newHandlerMethod
+		 * @param mapping
+		 */
 		private void assertUniqueMethodMapping(HandlerMethod newHandlerMethod, T mapping) {
+			//获得mapping对应的HandlerMethod
 			HandlerMethod handlerMethod = this.mappingLookup.get(mapping);
+			//如果新添加的HandlerMethod与老的HandlerMethod不同报错，一个mapping只能映射一个HandlerMethod
 			if (handlerMethod != null && !handlerMethod.equals(newHandlerMethod)) {
 				throw new IllegalStateException(
 						"Ambiguous mapping. Cannot map '" +	newHandlerMethod.getBean() + "' method \n" +
@@ -624,95 +664,135 @@ public abstract class AbstractHandlerMethodMapping<T> extends AbstractHandlerMap
 
 		private List<String> getDirectUrls(T mapping) {
 			List<String> urls = new ArrayList<>(1);
+			/**
+			 * getMappingPathPatterns会获得mapping配置的路径映射，比如
+			 * {@code @RequestMapping("/user/info/{id}")} 中的/user/info/{id}
+			 * 就是path pattern，
+			 */
 			for (String path : getMappingPathPatterns(mapping)) {
+				/**
+				 * getPathMatcher()获取路径匹配器，可以自己配置，默认是AntPathMatcher。
+				 * 该匹配器只会匹配路径中存在*和?的路径
+				 */
 				if (!getPathMatcher().isPattern(path)) {
+					//没有匹配上都放入urls中
 					urls.add(path);
 				}
 			}
 			return urls;
 		}
 
+		/**
+		 * 将Mapping名称和HandlerMethod对应关系放入nameLookup映射中
+		 * @param name
+		 * @param handlerMethod
+		 */
 		private void addMappingName(String name, HandlerMethod handlerMethod) {
+			//Mapping名称存在对应HandlerMethod集合
 			List<HandlerMethod> oldList = this.nameLookup.get(name);
 			if (oldList == null) {
 				oldList = Collections.emptyList();
 			}
 
+			//遍历之前的HandlerMethod
 			for (HandlerMethod current : oldList) {
+				//如果待添加的已经在老HandlerMethod集合中了，直接返回
 				if (handlerMethod.equals(current)) {
 					return;
 				}
 			}
 
+			//把新的HandlerMethod加入老集合中
 			List<HandlerMethod> newList = new ArrayList<>(oldList.size() + 1);
 			newList.addAll(oldList);
 			newList.add(handlerMethod);
 			this.nameLookup.put(name, newList);
 		}
 
+		/**
+		 * 移除mapping对应映射
+		 * @param mapping
+		 */
 		public void unregister(T mapping) {
+			//获得写锁
 			this.readWriteLock.writeLock().lock();
 			try {
+				//移除mapping对应MappingRegistration
 				MappingRegistration<T> definition = this.registry.remove(mapping);
+				//没有注册器下面就不用处理了
 				if (definition == null) {
 					return;
 				}
 
+				//移除mapping对应HandlerMethod
 				this.mappingLookup.remove(definition.getMapping());
-
+				//遍历mapping对应的url
 				for (String url : definition.getDirectUrls()) {
+					//获取url对应的所有Mapping
 					List<T> list = this.urlLookup.get(url);
 					if (list != null) {
+						//移除特定Mapping
 						list.remove(definition.getMapping());
+						//url没有对应Mapping了，将整个映射移除
 						if (list.isEmpty()) {
 							this.urlLookup.remove(url);
 						}
 					}
 				}
-
+				//从nameLookup中移除Mapping名称对应的映射
 				removeMappingName(definition);
-
+				//移除mapping对应HandlerMethod于跨域的映射
 				this.corsLookup.remove(definition.getHandlerMethod());
 			}
 			finally {
+				//释放写锁
 				this.readWriteLock.writeLock().unlock();
 			}
 		}
 
 		private void removeMappingName(MappingRegistration<T> definition) {
+			//mapping名称
 			String name = definition.getMappingName();
+			//没有名字直接返回
 			if (name == null) {
 				return;
 			}
+			//HandlerMethod
 			HandlerMethod handlerMethod = definition.getHandlerMethod();
+			//mapping名称对应的一组HandlerMethod
 			List<HandlerMethod> oldList = this.nameLookup.get(name);
+			//不存在直接返回
 			if (oldList == null) {
 				return;
 			}
+			//就一个HandlerMethod，直接移除返回
 			if (oldList.size() <= 1) {
 				this.nameLookup.remove(name);
 				return;
 			}
 			List<HandlerMethod> newList = new ArrayList<>(oldList.size() - 1);
+			//遍历所有HandlerMethod找到和Mapping一一对应的那个HandlerMethod，删除
 			for (HandlerMethod current : oldList) {
 				if (!current.equals(handlerMethod)) {
 					newList.add(current);
 				}
 			}
+			//将删除之后的handlerMethod集合再放回去
 			this.nameLookup.put(name, newList);
 		}
 	}
 
 
 	private static class MappingRegistration<T> {
-
+		//Mapping对象
 		private final T mapping;
-
+		//Mapping对应HandlerMethod
 		private final HandlerMethod handlerMethod;
-
+		//Mapping对应的url列表
 		private final List<String> directUrls;
 
 		@Nullable
+		//Mapping对应的唯一名称
 		private final String mappingName;
 
 		public MappingRegistration(T mapping, HandlerMethod handlerMethod,
