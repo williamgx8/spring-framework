@@ -27,7 +27,16 @@ import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.ModelAndView;
 
 /**
- * 提供根据请求路径是否满足某些规则来应用拦截的拦截器
+ * 提供根据请求路径是否满足某些规则来应用拦截的拦截器，对应的spring mvc xml配置如下<p></p>
+ * {@code
+ * 	<mvc:interceptors>
+ *     <mvc:interceptor>
+ *         <mvc:mapping path="/interceptor/**" />
+ *         <mvc:exclude-mapping path="/interceptor/b/*" />
+ *         <bean class="com.elim.learn.spring.mvc.interceptor.MyInterceptor" />
+ *     </mvc:interceptor>
+ * </mvc:interceptors>
+ * }
  * Contains and delegates calls to a {@link HandlerInterceptor} along with
  * include (and optionally exclude) path patterns to which the interceptor should apply.
  * Also provides matching logic to test if the interceptor applies to a given request path.
@@ -46,14 +55,17 @@ import org.springframework.web.servlet.ModelAndView;
 public final class MappedInterceptor implements HandlerInterceptor {
 
 	@Nullable
+	//匹配的路径模式
 	private final String[] includePatterns;
 
 	@Nullable
+	//排除的路径模式
 	private final String[] excludePatterns;
-
+	//包装的拦截器
 	private final HandlerInterceptor interceptor;
 
 	@Nullable
+	//路径匹配器
 	private PathMatcher pathMatcher;
 
 
@@ -139,6 +151,9 @@ public final class MappedInterceptor implements HandlerInterceptor {
 
 
 	/**
+	 * 判断请求路径lookupPath是否和成员变量定义的includePatterns和excludePatterns中定义的规则匹配，
+	 * 而匹配这件事有匹配器pathMatcher来计算
+	 * <p/>
 	 * Determine a match for the given lookup path.
 	 * @param lookupPath the current request path
 	 * @param pathMatcher a path matcher for path pattern matching
@@ -146,16 +161,20 @@ public final class MappedInterceptor implements HandlerInterceptor {
 	 */
 	public boolean matches(String lookupPath, PathMatcher pathMatcher) {
 		PathMatcher pathMatcherToUse = (this.pathMatcher != null ? this.pathMatcher : pathMatcher);
+		//如果存在需要排除的路径模式
 		if (!ObjectUtils.isEmpty(this.excludePatterns)) {
 			for (String pattern : this.excludePatterns) {
+				//每一个要排除的路径模式都需要计算，有一个命中就排除
 				if (pathMatcherToUse.match(pattern, lookupPath)) {
 					return false;
 				}
 			}
 		}
+		//如果没有配置includePatterns，就是除了excludePatterns剩下的都包含
 		if (ObjectUtils.isEmpty(this.includePatterns)) {
 			return true;
 		}
+		//只有匹配上includePatterns的请求才拦截
 		for (String pattern : this.includePatterns) {
 			if (pathMatcherToUse.match(pattern, lookupPath)) {
 				return true;

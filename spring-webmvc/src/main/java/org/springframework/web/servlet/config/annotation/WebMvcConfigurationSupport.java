@@ -325,8 +325,11 @@ public class WebMvcConfigurationSupport implements ApplicationContextAware, Serv
 	 */
 	protected final Object[] getInterceptors() {
 		if (this.interceptors == null) {
+			//拦截器注册器
 			InterceptorRegistry registry = new InterceptorRegistry();
+			//子类扩展的添加拦截器方法
 			addInterceptors(registry);
+			//扔两个内部的拦截器
 			registry.addInterceptor(new ConversionServiceExposingInterceptor(mvcConversionService()));
 			registry.addInterceptor(new ResourceUrlProviderExposingInterceptor(mvcResourceUrlProvider()));
 			this.interceptors = registry.getInterceptors();

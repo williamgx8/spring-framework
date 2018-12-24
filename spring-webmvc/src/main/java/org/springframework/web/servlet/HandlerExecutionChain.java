@@ -17,6 +17,7 @@
 package org.springframework.web.servlet;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -49,7 +50,7 @@ public class HandlerExecutionChain {
 
 	@Nullable
 	private List<HandlerInterceptor> interceptorList;
-
+	//当前执行到的拦截器下标
 	private int interceptorIndex = -1;
 
 
@@ -68,14 +69,20 @@ public class HandlerExecutionChain {
 	 * (in the given order) before the handler itself executes
 	 */
 	public HandlerExecutionChain(Object handler, @Nullable HandlerInterceptor... interceptors) {
+		//如果handler已经是处理器执行链对象
 		if (handler instanceof HandlerExecutionChain) {
 			HandlerExecutionChain originalChain = (HandlerExecutionChain) handler;
+			//将里面的处理器映射器赋值给handler
 			this.handler = originalChain.getHandler();
+			//初始化空拦截器数组
 			this.interceptorList = new ArrayList<>();
+			//将handler中拦截器复制到interceptorList
 			CollectionUtils.mergeArrayIntoCollection(originalChain.getInterceptors(), this.interceptorList);
+			//将Interceptors复制到InterceptorList
 			CollectionUtils.mergeArrayIntoCollection(interceptors, this.interceptorList);
 		}
 		else {
+			//handler就是普通的处理器映射器，直接赋值
 			this.handler = handler;
 			this.interceptors = interceptors;
 		}
@@ -89,29 +96,44 @@ public class HandlerExecutionChain {
 		return this.handler;
 	}
 
+	/**
+	 * 将参数传入的拦截器放入interceptorList中
+	 * @param interceptor
+	 */
 	public void addInterceptor(HandlerInterceptor interceptor) {
 		initInterceptorList().add(interceptor);
 	}
 
+	/**
+	 * 将参数传入的拦截器放入interceptorList中
+	 * @param interceptors
+	 */
 	public void addInterceptors(HandlerInterceptor... interceptors) {
 		if (!ObjectUtils.isEmpty(interceptors)) {
 			CollectionUtils.mergeArrayIntoCollection(interceptors, initInterceptorList());
 		}
 	}
 
+	/**
+	 * 初始化成员变量interceptorList
+	 * @return
+	 */
 	private List<HandlerInterceptor> initInterceptorList() {
 		if (this.interceptorList == null) {
 			this.interceptorList = new ArrayList<>();
 			if (this.interceptors != null) {
 				// An interceptor array specified through the constructor
+				//如果成员变量interceptors中有内容，先复制到interceptorList中
 				CollectionUtils.mergeArrayIntoCollection(this.interceptors, this.interceptorList);
 			}
 		}
+		//将interceptors清空
 		this.interceptors = null;
 		return this.interceptorList;
 	}
 
 	/**
+	 * 将成员变量interceptorList中内容复制到interceptors中，返回interceptors
 	 * Return the array of interceptors to apply (in the given order).
 	 * @return the array of HandlerInterceptors instances (may be {@code null})
 	 */
@@ -194,6 +216,7 @@ public class HandlerExecutionChain {
 	}
 
 	/**
+	 * 异步相关处理
 	 * Apply afterConcurrentHandlerStarted callback on mapped AsyncHandlerInterceptors.
 	 */
 	void applyAfterConcurrentHandlingStarted(HttpServletRequest request, HttpServletResponse response) {
