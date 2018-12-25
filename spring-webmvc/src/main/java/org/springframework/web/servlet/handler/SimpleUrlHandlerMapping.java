@@ -55,7 +55,7 @@ import org.springframework.util.CollectionUtils;
  * @see BeanNameUrlHandlerMapping
  */
 public class SimpleUrlHandlerMapping extends AbstractUrlHandlerMapping {
-
+	//url与处理器的映射
 	private final Map<String, Object> urlMap = new LinkedHashMap<>();
 
 
@@ -102,6 +102,7 @@ public class SimpleUrlHandlerMapping extends AbstractUrlHandlerMapping {
 	@Override
 	public void initApplicationContext() throws BeansException {
 		super.initApplicationContext();
+		//注册处理器
 		registerHandlers(this.urlMap);
 	}
 
@@ -116,17 +117,22 @@ public class SimpleUrlHandlerMapping extends AbstractUrlHandlerMapping {
 			logger.trace("No patterns in " + formatMappingName());
 		}
 		else {
+			//遍历所有url-handler映射对
 			urlMap.forEach((url, handler) -> {
 				// Prepend with slash if not already present.
+				//url不是以/开头给加上
 				if (!url.startsWith("/")) {
 					url = "/" + url;
 				}
 				// Remove whitespace from handler bean name.
+				//handler名称去除两边空格
 				if (handler instanceof String) {
 					handler = ((String) handler).trim();
 				}
+				//注册处理器
 				registerHandler(url, handler);
 			});
+			//加上根处理器和默认处理器，打印下日志
 			if (logger.isDebugEnabled()) {
 				List<String> patterns = new ArrayList<>();
 				if (getRootHandler() != null) {

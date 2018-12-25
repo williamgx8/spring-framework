@@ -457,6 +457,8 @@ public class AntPathMatcher implements PathMatcher {
 	}
 
 	/**
+	 * 如果匹配模式pattern中存在*或者?等匹配占位符，提取出真正请求path中与该占位符所在的一段对应的值
+	 * <p></p>
 	 * Given a pattern and a full path, determine the pattern-mapped part. <p>For example: <ul>
 	 * <li>'{@code /docs/cvs/commit.html}' and '{@code /docs/cvs/commit.html} -> ''</li>
 	 * <li>'{@code /docs/*}' and '{@code /docs/cvs/commit} -> '{@code cvs/commit}'</li>
@@ -471,18 +473,26 @@ public class AntPathMatcher implements PathMatcher {
 	 */
 	@Override
 	public String extractPathWithinPattern(String pattern, String path) {
+		//以/分隔匹配模式
 		String[] patternParts = StringUtils.tokenizeToStringArray(pattern, this.pathSeparator, this.trimTokens, true);
+		//以/分隔请求路径
 		String[] pathParts = StringUtils.tokenizeToStringArray(path, this.pathSeparator, this.trimTokens, true);
+		//保存结果的
 		StringBuilder builder = new StringBuilder();
 		boolean pathStarted = false;
 
 		for (int segment = 0; segment < patternParts.length; segment++) {
+			//依次遍历匹配模式各段，首先要找到匹配模式中存在占位符的那段
 			String patternPart = patternParts[segment];
+			//存在*或者?占位符了
 			if (patternPart.indexOf('*') > -1 || patternPart.indexOf('?') > -1) {
+				//从存在占位符的那段在匹配模式各段中的下标开始作为请求路径段查找的起点开始遍历
 				for (; segment < pathParts.length; segment++) {
+					//如果占位符是在路径各段的中间段，后面的字段中可能还有，那么当前解析出的字段需要加上/后缀
 					if (pathStarted || (segment == 0 && !pattern.startsWith(this.pathSeparator))) {
 						builder.append(this.pathSeparator);
 					}
+					//将解析出的与占位符对应的那段放入结果集
 					builder.append(pathParts[segment]);
 					pathStarted = true;
 				}
