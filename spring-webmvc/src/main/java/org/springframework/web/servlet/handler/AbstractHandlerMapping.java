@@ -425,7 +425,7 @@ public abstract class AbstractHandlerMapping extends WebApplicationObjectSupport
 	@Override
 	@Nullable
 	public final HandlerExecutionChain getHandler(HttpServletRequest request) throws Exception {
-		//获得请求对应的处理器映射器
+		//获得请求对应的HandlerMethod或者HandlerExecutionChain
 		Object handler = getHandlerInternal(request);
 		if (handler == null) {
 			//没有对应的用默认的，该handler是string类型的

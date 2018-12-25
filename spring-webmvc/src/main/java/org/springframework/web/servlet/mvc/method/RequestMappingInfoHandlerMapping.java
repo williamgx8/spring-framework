@@ -70,6 +70,7 @@ public abstract class RequestMappingInfoHandlerMapping extends AbstractHandlerMe
 
 
 	protected RequestMappingInfoHandlerMapping() {
+		//设置用于生成Mapping名称的策略类
 		setHandlerMethodMappingNamingStrategy(new RequestMappingInfoHandlerMethodMappingNamingStrategy());
 	}
 
@@ -83,6 +84,7 @@ public abstract class RequestMappingInfoHandlerMapping extends AbstractHandlerMe
 	}
 
 	/**
+	 * 从
 	 * Check if the given RequestMappingInfo matches the current request and
 	 * return a (potentially new) instance with conditions that match the
 	 * current request -- for example with a subset of URL patterns.

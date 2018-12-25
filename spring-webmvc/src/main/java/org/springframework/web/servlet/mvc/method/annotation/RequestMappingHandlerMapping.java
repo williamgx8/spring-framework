@@ -212,6 +212,7 @@ public class RequestMappingHandlerMapping extends RequestMappingInfoHandlerMappi
 	}
 
 	/**
+	 * 根据方法method和类handlerType上的{@code @RequestMapping}生成RequestMappingInfo
 	 * Uses method and type-level @{@link RequestMapping} annotations to create
 	 * the RequestMappingInfo.
 	 *
@@ -223,8 +224,10 @@ public class RequestMappingHandlerMapping extends RequestMappingInfoHandlerMappi
 	@Override
 	@Nullable
 	protected RequestMappingInfo getMappingForMethod(Method method, Class<?> handlerType) {
+		//获取方法上的@RequestMapping注解，创建RequestMappingInfo
 		RequestMappingInfo info = createRequestMappingInfo(method);
 		if (info != null) {
+			//类上的@RequestMapping注解生成的RequestMappingInfo
 			RequestMappingInfo typeInfo = createRequestMappingInfo(handlerType);
 			if (typeInfo != null) {
 				info = typeInfo.combine(info);
@@ -252,6 +255,8 @@ public class RequestMappingHandlerMapping extends RequestMappingInfoHandlerMappi
 	}
 
 	/**
+	 * 获得元素element上配置的{@code @RequestMapping}注解，解析注解中的属性封装成对应的RequestMappingInfo
+	 * <p></p>
 	 * Delegates to {@link #createRequestMappingInfo(RequestMapping, RequestCondition)},
 	 * supplying the appropriate custom {@link RequestCondition} depending on whether
 	 * the supplied {@code annotatedElement} is a class or method.
@@ -263,9 +268,11 @@ public class RequestMappingHandlerMapping extends RequestMappingInfoHandlerMappi
 	private RequestMappingInfo createRequestMappingInfo(AnnotatedElement element) {
 		RequestMapping requestMapping = AnnotatedElementUtils
 				.findMergedAnnotation(element, RequestMapping.class);
+		//交由子类扩展的自定义Condition
 		RequestCondition<?> condition = (element instanceof Class ?
 				getCustomTypeCondition((Class<?>) element)
 				: getCustomMethodCondition((Method) element));
+		//根据@RequestMapping中配置的属性创建RequestMappingInfo
 		return (requestMapping != null ? createRequestMappingInfo(requestMapping, condition)
 				: null);
 	}
