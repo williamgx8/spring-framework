@@ -104,6 +104,7 @@ public abstract class RequestMappingInfoHandlerMapping extends AbstractHandlerMe
 	}
 
 	/**
+	 * 处理uri中{xx}的参数变量和矩阵变量，将解析出的内容放入request的某些属性上
 	 * Expose URI template variables, matrix variables, and producible media types in the request.
 	 * @see HandlerMapping#URI_TEMPLATE_VARIABLES_ATTRIBUTE
 	 * @see HandlerMapping#MATRIX_VARIABLES_ATTRIBUTE
@@ -112,32 +113,39 @@ public abstract class RequestMappingInfoHandlerMapping extends AbstractHandlerMe
 	@Override
 	protected void handleMatch(RequestMappingInfo info, String lookupPath, HttpServletRequest request) {
 		super.handleMatch(info, lookupPath, request);
-
+		//最匹配的路径模式
 		String bestPattern;
+		//路径中可能存在的变量集合，比如/{a}/{b}，当请求为/1/2时，该集合就存在 a-1,b-2的键值对
 		Map<String, String> uriVariables;
-
+		//获取所有匹配模式
 		Set<String> patterns = info.getPatternsCondition().getPatterns();
 		if (patterns.isEmpty()) {
 			bestPattern = lookupPath;
 			uriVariables = Collections.emptyMap();
 		}
 		else {
+			//第一个为最匹配的
 			bestPattern = patterns.iterator().next();
+			//将实际请求路径和最优匹配路径模式中的占位符进行映射
 			uriVariables = getPathMatcher().extractUriTemplateVariables(bestPattern, lookupPath);
 		}
 
 		request.setAttribute(BEST_MATCHING_PATTERN_ATTRIBUTE, bestPattern);
 
+		//处理这种情况 bestPattern = /{cars}  真实请求 /cars;mvar=a/b 相当于matrixVars为key为cars，value为mvar与a/b的映射
 		if (isMatrixVariableContentAvailable()) {
 			Map<String, MultiValueMap<String, String>> matrixVars = extractMatrixVariables(request, uriVariables);
 			request.setAttribute(HandlerMapping.MATRIX_VARIABLES_ATTRIBUTE, matrixVars);
 		}
 
+		//将路径上的请求参数进行url decode
 		Map<String, String> decodedUriVariables = getUrlPathHelper().decodePathVariables(request, uriVariables);
 		request.setAttribute(HandlerMapping.URI_TEMPLATE_VARIABLES_ATTRIBUTE, decodedUriVariables);
 
 		if (!info.getProducesCondition().getProducibleMediaTypes().isEmpty()) {
+			//获取请求配置的生产 Content-Type类型
 			Set<MediaType> mediaTypes = info.getProducesCondition().getProducibleMediaTypes();
+			//放入request属性
 			request.setAttribute(PRODUCIBLE_MEDIA_TYPES_ATTRIBUTE, mediaTypes);
 		}
 	}
@@ -177,6 +185,8 @@ public abstract class RequestMappingInfoHandlerMapping extends AbstractHandlerMe
 	}
 
 	/**
+	 * 处理未匹配的url，并根据未匹配的原因抛出对应的异常
+	 * <p></p>
 	 * Iterate all RequestMappingInfo's once again, look if any match by URL at
 	 * least and raise exceptions according to what doesn't match.
 	 * @throws HttpRequestMethodNotSupportedException if there are matches by URL
@@ -192,35 +202,41 @@ public abstract class RequestMappingInfoHandlerMapping extends AbstractHandlerMe
 		if (helper.isEmpty()) {
 			return null;
 		}
-
+		//存在请求方式的不匹配
 		if (helper.hasMethodsMismatch()) {
+			//允许的请求方式列表
 			Set<String> methods = helper.getAllowedMethods();
+			//如果请求的是OPTIONS类型，都给通过
 			if (HttpMethod.OPTIONS.matches(request.getMethod())) {
 				HttpOptionsHandler handler = new HttpOptionsHandler(methods);
 				return new HandlerMethod(handler, HTTP_OPTIONS_HANDLE_METHOD);
 			}
+			//其他抛出不支持的请求方式异常
 			throw new HttpRequestMethodNotSupportedException(request.getMethod(), methods);
 		}
-
+		//响应对应的Content-Type不匹配
 		if (helper.hasConsumesMismatch()) {
+			//获得允许的响应Content-Type
 			Set<MediaType> mediaTypes = helper.getConsumableMediaTypes();
 			MediaType contentType = null;
 			if (StringUtils.hasLength(request.getContentType())) {
 				try {
+					//设置的Content-Type不符合标准，没有这种Content-Type
 					contentType = MediaType.parseMediaType(request.getContentType());
 				}
 				catch (InvalidMediaTypeException ex) {
 					throw new HttpMediaTypeNotSupportedException(ex.getMessage());
 				}
 			}
+			//请求的Content-Type和设置Content-Type不符合
 			throw new HttpMediaTypeNotSupportedException(contentType, new ArrayList<>(mediaTypes));
 		}
-
+		//接收的Content-Type不匹配
 		if (helper.hasProducesMismatch()) {
 			Set<MediaType> mediaTypes = helper.getProducibleMediaTypes();
 			throw new HttpMediaTypeNotAcceptableException(new ArrayList<>(mediaTypes));
 		}
-
+		//参数不匹配
 		if (helper.hasParamsMismatch()) {
 			List<String[]> conditions = helper.getParamConditions();
 			throw new UnsatisfiedServletRequestParameterException(conditions, request.getParameterMap());

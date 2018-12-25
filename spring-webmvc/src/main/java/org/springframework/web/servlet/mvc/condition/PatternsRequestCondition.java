@@ -121,10 +121,16 @@ public final class PatternsRequestCondition extends AbstractRequestCondition<Pat
 		}
 	}
 
-
+	/**
+	 * 在没有以/开头的配置的路径匹配模式前加上/
+	 * @param patterns
+	 * @return
+	 */
 	private static Set<String> prependLeadingSlash(Collection<String> patterns) {
 		Set<String> result = new LinkedHashSet<>(patterns.size());
+		//遍历每一个路径匹配模式
 		for (String pattern : patterns) {
+			//如果没有以/开头，加上/
 			if (StringUtils.hasLength(pattern) && !pattern.startsWith("/")) {
 				pattern = "/" + pattern;
 			}
@@ -148,6 +154,7 @@ public final class PatternsRequestCondition extends AbstractRequestCondition<Pat
 	}
 
 	/**
+	 * 路径匹配条件中的路径匹配模式融合
 	 * Returns a new instance with URL patterns from the current instance ("this") and
 	 * the "other" instance as follows:
 	 * <ul>
@@ -160,13 +167,16 @@ public final class PatternsRequestCondition extends AbstractRequestCondition<Pat
 	@Override
 	public PatternsRequestCondition combine(PatternsRequestCondition other) {
 		Set<String> result = new LinkedHashSet<>();
+		//融合双方都存在路径匹配模式列表
 		if (!this.patterns.isEmpty() && !other.patterns.isEmpty()) {
+			//每个匹配模式都与另一个中的任何一个匹配模式都融合一次
 			for (String pattern1 : this.patterns) {
 				for (String pattern2 : other.patterns) {
 					result.add(this.pathMatcher.combine(pattern1, pattern2));
 				}
 			}
 		}
+		//将两个单一方的匹配模式也加进结果集合
 		else if (!this.patterns.isEmpty()) {
 			result.addAll(this.patterns);
 		}
@@ -176,6 +186,7 @@ public final class PatternsRequestCondition extends AbstractRequestCondition<Pat
 		else {
 			result.add("");
 		}
+		//构建新的路径匹配条件
 		return new PatternsRequestCondition(result, this.pathHelper, this.pathMatcher,
 				this.useSuffixPatternMatch, this.useTrailingSlashMatch, this.fileExtensions);
 	}

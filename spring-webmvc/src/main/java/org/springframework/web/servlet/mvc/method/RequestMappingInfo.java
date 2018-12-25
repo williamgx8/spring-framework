@@ -175,6 +175,8 @@ public final class RequestMappingInfo implements RequestCondition<RequestMapping
 	}
 
 	/**
+	 * 将当前RequestMappingInfo和另一个RequestMappingInfo信息进行融合，多见于类上{@code @RequestMapping}和方法上{@code @RequestMapping}的融合
+	 * <p></p>
 	 * Combine "this" request mapping info (i.e. the current instance) with another request mapping info instance.
 	 * <p>Example: combine type- and method-level request mappings.
 	 *
@@ -182,7 +184,9 @@ public final class RequestMappingInfo implements RequestCondition<RequestMapping
 	 */
 	@Override
 	public RequestMappingInfo combine(RequestMappingInfo other) {
+		//融合名称  类注解的名称#方法注解的名称
 		String name = combineNames(other);
+		//各种匹配条件模式融合
 		PatternsRequestCondition patterns = this.patternsCondition.combine(other.patternsCondition);
 		RequestMethodsRequestCondition methods = this.methodsCondition.combine(other.methodsCondition);
 		ParamsRequestCondition params = this.paramsCondition.combine(other.paramsCondition);
@@ -190,7 +194,7 @@ public final class RequestMappingInfo implements RequestCondition<RequestMapping
 		ConsumesRequestCondition consumes = this.consumesCondition.combine(other.consumesCondition);
 		ProducesRequestCondition produces = this.producesCondition.combine(other.producesCondition);
 		RequestConditionHolder custom = this.customConditionHolder.combine(other.customConditionHolder);
-
+		//创建融合后的RequestMappingInfo
 		return new RequestMappingInfo(name, patterns,
 				methods, params, headers, consumes, produces, custom.getCondition());
 	}

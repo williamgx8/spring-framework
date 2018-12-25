@@ -65,7 +65,10 @@ public class RequestMappingHandlerMapping extends RequestMappingInfoHandlerMappi
 	private boolean useRegisteredSuffixPatternMatch = false;
 
 	private boolean useTrailingSlashMatch = true;
-
+	/**
+	 * 路径前缀映射，key为配置的前缀，value为被配置前缀的类包装的Predicate对象，默认为HandlerTypePredicate，
+	 * 该值通过Configuration相关类进行设置
+	 */
 	private Map<String, Predicate<Class<?>>> pathPrefixes = new LinkedHashMap<>();
 
 	private ContentNegotiationManager contentNegotiationManager = new ContentNegotiationManager();
@@ -154,8 +157,12 @@ public class RequestMappingHandlerMapping extends RequestMappingInfoHandlerMappi
 		this.embeddedValueResolver = resolver;
 	}
 
+	/**
+	 * 重写父类AbstractHandlerMethodMapping的afterProperties，该方法是由于父类实现了InitializingBean接口
+	 */
 	@Override
 	public void afterPropertiesSet() {
+		//创建用户构建RequestMappingInfo对象的配置类
 		this.config = new RequestMappingInfo.BuilderConfiguration();
 		this.config.setUrlPathHelper(getUrlPathHelper());
 		this.config.setPathMatcher(getPathMatcher());
@@ -163,7 +170,7 @@ public class RequestMappingHandlerMapping extends RequestMappingInfoHandlerMappi
 		this.config.setTrailingSlashMatch(this.useTrailingSlashMatch);
 		this.config.setRegisteredSuffixPatternMatch(this.useRegisteredSuffixPatternMatch);
 		this.config.setContentNegotiationManager(getContentNegotiationManager());
-
+		//调用父类方法开始解析注册所有配置的@RequestMapping
 		super.afterPropertiesSet();
 	}
 
@@ -199,7 +206,7 @@ public class RequestMappingHandlerMapping extends RequestMappingInfoHandlerMappi
 
 
 	/**
-	 * 判断beanType对应的类是否是HandlerMethod
+	 * 判断beanType对应的类是否是Handler
 	 * {@inheritDoc}
 	 * <p>Expects a handler to have either a type-level @{@link Controller}
 	 * annotation or a type-level @{@link RequestMapping} annotation.
@@ -230,27 +237,40 @@ public class RequestMappingHandlerMapping extends RequestMappingInfoHandlerMappi
 			//类上的@RequestMapping注解生成的RequestMappingInfo
 			RequestMappingInfo typeInfo = createRequestMappingInfo(handlerType);
 			if (typeInfo != null) {
+				//将类对象和方法对象进行融合，形成新的RequestMappingInfo
+				/**
+				 * 在此处就会将类上配置{@code @RequestMapping("/user")}和特定方法上的
+				 * {@code @RequestMapping("/info")} 融合到一起变成  /user/info的路径匹配模式
+				 */
 				info = typeInfo.combine(info);
 			}
+			//获得当前类配置的前缀，一般通过Configuration对某些Controller配置前缀
 			String prefix = getPathPrefix(handlerType);
 			if (prefix != null) {
+				//再和前缀进行融合
 				info = RequestMappingInfo.paths(prefix).build().combine(info);
 			}
 		}
+		//返回最终的RequestMappingInfo
 		return info;
 	}
 
 	@Nullable
 	String getPathPrefix(Class<?> handlerType) {
+		//遍历每一个前缀映射
 		for (Map.Entry<String, Predicate<Class<?>>> entry : this.pathPrefixes.entrySet()) {
+			//判断当前遍历的前缀是否配置在了handlerType类上
 			if (entry.getValue().test(handlerType)) {
 				String prefix = entry.getKey();
+				//如果配置了值解析器，对前缀的占位符进行解析
 				if (this.embeddedValueResolver != null) {
 					prefix = this.embeddedValueResolver.resolveStringValue(prefix);
 				}
+				//返回前缀
 				return prefix;
 			}
 		}
+		//无匹配前缀
 		return null;
 	}
 
