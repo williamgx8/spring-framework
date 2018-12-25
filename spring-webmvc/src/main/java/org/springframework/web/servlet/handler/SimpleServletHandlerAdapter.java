@@ -46,24 +46,26 @@ import org.springframework.web.servlet.ModelAndView;
  * parameters etc.
  *
  * @author Juergen Hoeller
- * @since 1.1.5
  * @see javax.servlet.Servlet
  * @see javax.servlet.http.HttpServlet
  * @see SimpleServletPostProcessor
  * @see org.springframework.web.servlet.mvc.ServletWrappingController
+ * @since 1.1.5
  */
 public class SimpleServletHandlerAdapter implements HandlerAdapter {
 
 	@Override
 	public boolean supports(Object handler) {
+		//只支持Servlet类型
 		return (handler instanceof Servlet);
 	}
 
 	@Override
 	@Nullable
-	public ModelAndView handle(HttpServletRequest request, HttpServletResponse response, Object handler)
+	public ModelAndView handle(HttpServletRequest request, HttpServletResponse response,
+			Object handler)
 			throws Exception {
-
+		//Servlet的service方法
 		((Servlet) handler).service(request, response);
 		return null;
 	}

@@ -27,13 +27,15 @@ import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.support.WebContentGenerator;
 
 /**
+ * 与AbstractHandlerMethodMapping对应的Adapter
  * Abstract base class for {@link HandlerAdapter} implementations that support
  * handlers of type {@link HandlerMethod}.
  *
  * @author Arjen Poutsma
  * @since 3.1
  */
-public abstract class AbstractHandlerMethodAdapter extends WebContentGenerator implements HandlerAdapter, Ordered {
+public abstract class AbstractHandlerMethodAdapter extends WebContentGenerator implements
+		HandlerAdapter, Ordered {
 
 	private int order = Ordered.LOWEST_PRECEDENCE;
 
@@ -47,6 +49,7 @@ public abstract class AbstractHandlerMethodAdapter extends WebContentGenerator i
 	/**
 	 * Specify the order value for this HandlerAdapter bean.
 	 * <p>The default value is {@code Ordered.LOWEST_PRECEDENCE}, meaning non-ordered.
+	 *
 	 * @see org.springframework.core.Ordered#getOrder()
 	 */
 	public void setOrder(int order) {
@@ -61,16 +64,19 @@ public abstract class AbstractHandlerMethodAdapter extends WebContentGenerator i
 
 	/**
 	 * This implementation expects the handler to be an {@link HandlerMethod}.
+	 *
 	 * @param handler the handler instance to check
 	 * @return whether or not this adapter can adapt the given handler
 	 */
 	@Override
 	public final boolean supports(Object handler) {
+		//支持HandlerMethod的处理调用，supportInternal由子类扩展，默认返回true
 		return (handler instanceof HandlerMethod && supportsInternal((HandlerMethod) handler));
 	}
 
 	/**
 	 * Given a handler method, return whether or not this adapter can support it.
+	 *
 	 * @param handlerMethod the handler method to check
 	 * @return whether or not this adapter can adapt the given method
 	 */
@@ -81,14 +87,16 @@ public abstract class AbstractHandlerMethodAdapter extends WebContentGenerator i
 	 */
 	@Override
 	@Nullable
-	public final ModelAndView handle(HttpServletRequest request, HttpServletResponse response, Object handler)
+	public final ModelAndView handle(HttpServletRequest request, HttpServletResponse response,
+			Object handler)
 			throws Exception {
-
+		//子类处理
 		return handleInternal(request, response, (HandlerMethod) handler);
 	}
 
 	/**
 	 * Use the given handler method to handle the request.
+	 *
 	 * @param request current HTTP request
 	 * @param response current HTTP response
 	 * @param handlerMethod handler method to use. This object must have previously been passed to the
@@ -111,10 +119,12 @@ public abstract class AbstractHandlerMethodAdapter extends WebContentGenerator i
 
 	/**
 	 * Same contract as for {@link javax.servlet.http.HttpServlet#getLastModified(HttpServletRequest)}.
+	 *
 	 * @param request current HTTP request
 	 * @param handlerMethod handler method to use
 	 * @return the lastModified value for the given handler
 	 */
-	protected abstract long getLastModifiedInternal(HttpServletRequest request, HandlerMethod handlerMethod);
+	protected abstract long getLastModifiedInternal(HttpServletRequest request,
+			HandlerMethod handlerMethod);
 
 }
