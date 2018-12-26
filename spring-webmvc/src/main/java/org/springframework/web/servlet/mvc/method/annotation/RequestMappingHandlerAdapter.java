@@ -184,9 +184,13 @@ public class RequestMappingHandlerAdapter extends AbstractHandlerMethodAdapter
 
 	private final Map<Class<?>, SessionAttributesHandler> sessionAttributesHandlerCache = new ConcurrentHashMap<>(
 			64);
-
+	/**
+	 * 保存包含@InitBinder注解的Controller类型与类中所有被@InitBinder修饰的方法列表映射
+	 */
 	private final Map<Class<?>, Set<Method>> initBinderCache = new ConcurrentHashMap<>(64);
-
+	/**
+	 * 保存被@ControllerAdvice修饰类对象ControllerAdviceBean与该类中被@InitBinder修饰的方法列表映射
+	 */
 	private final Map<ControllerAdviceBean, Set<Method>> initBinderAdviceCache = new LinkedHashMap<>();
 
 	private final Map<Class<?>, Set<Method>> modelAttributeCache = new ConcurrentHashMap<>(64);
@@ -927,9 +931,12 @@ public class RequestMappingHandlerAdapter extends AbstractHandlerMethodAdapter
 	protected ModelAndView invokeHandlerMethod(HttpServletRequest request,
 			HttpServletResponse response, HandlerMethod handlerMethod) throws Exception {
 
+		//请求响应封装成ServletWebRequest
 		ServletWebRequest webRequest = new ServletWebRequest(request, response);
 		try {
+			//获得和HandlerMethod有关所有参数绑定类的工厂
 			WebDataBinderFactory binderFactory = getDataBinderFactory(handlerMethod);
+			//获得模型工厂，与@ModelAndAttribute等视图注解相关，在前后端分离的目前来看用处不大
 			ModelFactory modelFactory = getModelFactory(handlerMethod, binderFactory);
 
 			ServletInvocableHandlerMethod invocableMethod = createInvocableHandlerMethod(
@@ -1029,28 +1036,52 @@ public class RequestMappingHandlerAdapter extends AbstractHandlerMethodAdapter
 		return attrMethod;
 	}
 
+	/**
+	 * 获取在HandlerMethod所在类Controller中注册的某个参数绑定器（用户类型转换），其中包含两个部分：
+	 * 1. 在HandlerMethod所在类中注册的只针对当前Controller的InitBinder；
+	 * 2. 在ControllerAdvice中注册的适用于HandlerMethod所在类Controller的全局InitBinder
+	 * <p></p>
+	 * @param handlerMethod
+	 * @return
+	 * @throws Exception
+	 */
 	private WebDataBinderFactory getDataBinderFactory(HandlerMethod handlerMethod)
 			throws Exception {
+		//当前Controller类型
 		Class<?> handlerType = handlerMethod.getBeanType();
+		//注册在当前Controller的参数绑定器
 		Set<Method> methods = this.initBinderCache.get(handlerType);
+		//不存在
 		if (methods == null) {
+			//扫描当前类中被@InitBinder修饰的方法
 			methods = MethodIntrospector.selectMethods(handlerType, INIT_BINDER_METHODS);
+			//放入参数绑定器缓存中
 			this.initBinderCache.put(handlerType, methods);
 		}
+		//被参数绑定器修饰的方法列表
 		List<InvocableHandlerMethod> initBinderMethods = new ArrayList<>();
 		// Global methods first
+		//遍历所有被@ControllerAdvice修饰类中被@InitBinder修饰的方法列表
 		this.initBinderAdviceCache.forEach((clazz, methodSet) -> {
+			//clazz对应的@ControllerAdvice能否引用到HandlerMethod所在的Controller上
+			//@ControllerAdvice中可以通过basePackages等参数设置Controller增强应用在哪些Controller上
 			if (clazz.isApplicableToBeanType(handlerType)) {
+				//获得被@ControllerAdvice修饰的对象
 				Object bean = clazz.resolveBean();
+				//遍历该类中所有被@InitBinder注释的方法
 				for (Method method : methodSet) {
+					//封装成InvocableHandlerMethod放入参数绑定器参数列表
 					initBinderMethods.add(createInitBinderMethod(bean, method));
 				}
 			}
 		});
+		//遍历所有在HandlerMethod方法所在类中被@InitBinder修饰的方法
 		for (Method method : methods) {
 			Object bean = handlerMethod.getBean();
+			//创建InvocableHandlerMethod并放入initBinderMethods中
 			initBinderMethods.add(createInitBinderMethod(bean, method));
 		}
+		//最后将所有InitBinder方法封装成WebDataBinderFactory返回
 		return createDataBinderFactory(initBinderMethods);
 	}
 
