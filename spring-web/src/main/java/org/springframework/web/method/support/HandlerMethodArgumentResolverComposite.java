@@ -52,16 +52,19 @@ public class HandlerMethodArgumentResolverComposite implements HandlerMethodArgu
 	/**
 	 * Add the given {@link HandlerMethodArgumentResolver}.
 	 */
-	public HandlerMethodArgumentResolverComposite addResolver(HandlerMethodArgumentResolver resolver) {
+	public HandlerMethodArgumentResolverComposite addResolver(
+			HandlerMethodArgumentResolver resolver) {
 		this.argumentResolvers.add(resolver);
 		return this;
 	}
 
 	/**
 	 * Add the given {@link HandlerMethodArgumentResolver HandlerMethodArgumentResolvers}.
+	 *
 	 * @since 4.3
 	 */
-	public HandlerMethodArgumentResolverComposite addResolvers(@Nullable HandlerMethodArgumentResolver... resolvers) {
+	public HandlerMethodArgumentResolverComposite addResolvers(
+			@Nullable HandlerMethodArgumentResolver... resolvers) {
 		if (resolvers != null) {
 			Collections.addAll(this.argumentResolvers, resolvers);
 		}
@@ -89,6 +92,7 @@ public class HandlerMethodArgumentResolverComposite implements HandlerMethodArgu
 
 	/**
 	 * Clear the list of configured resolvers.
+	 *
 	 * @since 4.3
 	 */
 	public void clear() {
@@ -106,23 +110,29 @@ public class HandlerMethodArgumentResolverComposite implements HandlerMethodArgu
 	}
 
 	/**
+	 * 参数解析器处理请求参数
 	 * Iterate over registered
 	 * {@link HandlerMethodArgumentResolver HandlerMethodArgumentResolvers} and
 	 * invoke the one that supports it.
+	 *
 	 * @throws IllegalStateException if no suitable
 	 * {@link HandlerMethodArgumentResolver} is found.
 	 */
 	@Override
 	@Nullable
-	public Object resolveArgument(MethodParameter parameter, @Nullable ModelAndViewContainer mavContainer,
-			NativeWebRequest webRequest, @Nullable WebDataBinderFactory binderFactory) throws Exception {
+	public Object resolveArgument(MethodParameter parameter,
+			@Nullable ModelAndViewContainer mavContainer,
+			NativeWebRequest webRequest, @Nullable WebDataBinderFactory binderFactory)
+			throws Exception {
 
+		//获取参数对应的参数解析器
 		HandlerMethodArgumentResolver resolver = getArgumentResolver(parameter);
 		if (resolver == null) {
 			throw new IllegalArgumentException(
 					"Unsupported parameter type [" + parameter.getParameterType().getName() + "]." +
 							" supportsParameter should be called first.");
 		}
+		//参数解析，自定义参数解析需要自己实现的方法
 		return resolver.resolveArgument(parameter, mavContainer, webRequest, binderFactory);
 	}
 

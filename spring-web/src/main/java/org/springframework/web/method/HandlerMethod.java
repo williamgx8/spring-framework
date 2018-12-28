@@ -75,7 +75,7 @@ public class HandlerMethod {
 	private final Class<?> beanType;
 	//mapping修饰的方法
 	private final Method method;
-	//桥接方法
+	//被桥接方法，在设置时，如果method不是桥接方法，那么被桥接的方法也是method本身
 	private final Method bridgedMethod;
 	//方法参数数组
 	private final MethodParameter[] parameters;

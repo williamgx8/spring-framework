@@ -68,8 +68,10 @@ public class HandlerMethodReturnValueHandlerComposite implements HandlerMethodRe
 	}
 
 	/**
+	 * 处理返回值，并放入ModelAndView中
 	 * 使用HandlerMethodReturnValueHandlers处理返回值
 	 * Iterate over registered {@link HandlerMethodReturnValueHandler HandlerMethodReturnValueHandlers} and invoke the one that supports it.
+	 *
 	 * @throws IllegalStateException if no suitable {@link HandlerMethodReturnValueHandler} is found.
 	 */
 	@Override
@@ -80,20 +82,27 @@ public class HandlerMethodReturnValueHandlerComposite implements HandlerMethodRe
 		HandlerMethodReturnValueHandler handler = selectHandler(returnValue, returnType);
 		//不存在报错
 		if (handler == null) {
-			throw new IllegalArgumentException("Unknown return value type: " + returnType.getParameterType().getName());
+			throw new IllegalArgumentException(
+					"Unknown return value type: " + returnType.getParameterType().getName());
 		}
 		//处理返回值
 		handler.handleReturnValue(returnValue, returnType, mavContainer, webRequest);
 	}
 
 	@Nullable
-	private HandlerMethodReturnValueHandler selectHandler(@Nullable Object value, MethodParameter returnType) {
+	private HandlerMethodReturnValueHandler selectHandler(@Nullable Object value,
+			MethodParameter returnType) {
+		//是否是异步返回值
 		boolean isAsyncValue = isAsyncReturnValue(value, returnType);
+		//遍历每一个结果处理器
 		for (HandlerMethodReturnValueHandler handler : this.returnValueHandlers) {
+			//如果是异步的，但不是AsyncHandlerMethodReturnValueHandler处理器，那么肯定就不匹配，继续下一个
 			if (isAsyncValue && !(handler instanceof AsyncHandlerMethodReturnValueHandler)) {
 				continue;
 			}
+			//判断结果处理器是否支持处理结果类型
 			if (handler.supportsReturnType(returnType)) {
+				//支持返回该结果处理器
 				return handler;
 			}
 		}
@@ -103,7 +112,8 @@ public class HandlerMethodReturnValueHandlerComposite implements HandlerMethodRe
 	private boolean isAsyncReturnValue(@Nullable Object value, MethodParameter returnType) {
 		for (HandlerMethodReturnValueHandler handler : this.returnValueHandlers) {
 			if (handler instanceof AsyncHandlerMethodReturnValueHandler &&
-					((AsyncHandlerMethodReturnValueHandler) handler).isAsyncReturnValue(value, returnType)) {
+					((AsyncHandlerMethodReturnValueHandler) handler)
+							.isAsyncReturnValue(value, returnType)) {
 				return true;
 			}
 		}
@@ -113,7 +123,8 @@ public class HandlerMethodReturnValueHandlerComposite implements HandlerMethodRe
 	/**
 	 * Add the given {@link HandlerMethodReturnValueHandler}.
 	 */
-	public HandlerMethodReturnValueHandlerComposite addHandler(HandlerMethodReturnValueHandler handler) {
+	public HandlerMethodReturnValueHandlerComposite addHandler(
+			HandlerMethodReturnValueHandler handler) {
 		this.returnValueHandlers.add(handler);
 		return this;
 	}

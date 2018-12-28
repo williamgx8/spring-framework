@@ -84,7 +84,8 @@ public class ServletInvocableHandlerMethod extends InvocableHandlerMethod {
 	 * Register {@link HandlerMethodReturnValueHandler} instances to use to
 	 * handle return values.
 	 */
-	public void setHandlerMethodReturnValueHandlers(HandlerMethodReturnValueHandlerComposite returnValueHandlers) {
+	public void setHandlerMethodReturnValueHandlers(
+			HandlerMethodReturnValueHandlerComposite returnValueHandlers) {
 		this.returnValueHandlers = returnValueHandlers;
 	}
 
@@ -92,6 +93,7 @@ public class ServletInvocableHandlerMethod extends InvocableHandlerMethod {
 	/**
 	 * Invoke the method and handle the return value through one of the
 	 * configured {@link HandlerMethodReturnValueHandler HandlerMethodReturnValueHandlers}.
+	 *
 	 * @param webRequest the current request
 	 * @param mavContainer the ModelAndViewContainer for this request
 	 * @param providedArgs "given" arguments matched by type (not resolved)
@@ -107,7 +109,8 @@ public class ServletInvocableHandlerMethod extends InvocableHandlerMethod {
 		//没有返回值的方法
 		if (returnValue == null) {
 			//如果是还在last-modified的缓存时间内没有更改，或者存在响应吗，或者请求已经被处理
-			if (isRequestNotModified(webRequest) || getResponseStatus() != null || mavContainer.isRequestHandled()) {
+			if (isRequestNotModified(webRequest) || getResponseStatus() != null || mavContainer
+					.isRequestHandled()) {
 				//设置请求已经被处理
 				mavContainer.setRequestHandled(true);
 				//返回
@@ -127,8 +130,7 @@ public class ServletInvocableHandlerMethod extends InvocableHandlerMethod {
 			//调用合适的一个HandlerMethodReturnValueHandler处理返回值
 			this.returnValueHandlers.handleReturnValue(
 					returnValue, getReturnValueType(returnValue), mavContainer, webRequest);
-		}
-		catch (Exception ex) {
+		} catch (Exception ex) {
 			if (logger.isTraceEnabled()) {
 				logger.trace(formatErrorForReturnValue(returnValue), ex);
 			}
@@ -137,31 +139,40 @@ public class ServletInvocableHandlerMethod extends InvocableHandlerMethod {
 	}
 
 	/**
+	 * {@code @ResponseStatus}的两种用法：1.放在自定义异常类上，在Controller中抛出该异常，该异常的响应码和错误信息即为
+	 * 在{@code @ResponseStatus}中配置的内容；2.直接放在Controller中的某个方法上，那么访问方法对应的uri都会抛出配置的异常
+	 * 和异常信息
 	 * Set the response status according to the {@link ResponseStatus} annotation.
 	 */
 	private void setResponseStatus(ServletWebRequest webRequest) throws IOException {
+		//获取@ResponseStatus配置对象
 		HttpStatus status = getResponseStatus();
+		//不存在直接返回
 		if (status == null) {
 			return;
 		}
-
+		//存在先获取原本的响应
 		HttpServletResponse response = webRequest.getResponse();
 		if (response != null) {
+			//响应原因
 			String reason = getResponseStatusReason();
 			if (StringUtils.hasText(reason)) {
+				//设置配置的错误状态码和原因
 				response.sendError(status.value(), reason);
-			}
-			else {
+			} else {
+				//否则只设置状态码
 				response.setStatus(status.value());
 			}
 		}
 
 		// To be picked up by RedirectView
+		//设置到request参数中
 		webRequest.getRequest().setAttribute(View.RESPONSE_STATUS_ATTRIBUTE, status);
 	}
 
 	/**
 	 * Does the given request qualify as "not modified"?
+	 *
 	 * @see ServletWebRequest#checkNotModified(long)
 	 * @see ServletWebRequest#checkNotModified(String)
 	 */
@@ -182,7 +193,8 @@ public class ServletInvocableHandlerMethod extends InvocableHandlerMethod {
 	 * async return values (e.g. Callable, DeferredResult, ListenableFuture).
 	 */
 	ServletInvocableHandlerMethod wrapConcurrentResult(Object result) {
-		return new ConcurrentResultHandlerMethod(result, new ConcurrentResultMethodParameter(result));
+		return new ConcurrentResultHandlerMethod(result,
+				new ConcurrentResultMethodParameter(result));
 	}
 
 
@@ -196,19 +208,20 @@ public class ServletInvocableHandlerMethod extends InvocableHandlerMethod {
 
 		private final MethodParameter returnType;
 
-		public ConcurrentResultHandlerMethod(final Object result, ConcurrentResultMethodParameter returnType) {
+		public ConcurrentResultHandlerMethod(final Object result,
+				ConcurrentResultMethodParameter returnType) {
 			super((Callable<Object>) () -> {
 				if (result instanceof Exception) {
 					throw (Exception) result;
-				}
-				else if (result instanceof Throwable) {
+				} else if (result instanceof Throwable) {
 					throw new NestedServletException("Async processing failed", (Throwable) result);
 				}
 				return result;
 			}, CALLABLE_METHOD);
 
 			if (ServletInvocableHandlerMethod.this.returnValueHandlers != null) {
-				setHandlerMethodReturnValueHandlers(ServletInvocableHandlerMethod.this.returnValueHandlers);
+				setHandlerMethodReturnValueHandlers(
+						ServletInvocableHandlerMethod.this.returnValueHandlers);
 			}
 			this.returnType = returnType;
 		}
