@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Diagram>
+  <ID>JAVA</ID>
+  <OriginalElement>org.springframework.web.method.annotation.RequestHeaderMethodArgumentResolver</OriginalElement>
+  <nodes>
+    <node x="2760.696834415585" y="188.0">org.springframework.web.method.annotation.RequestHeaderMethodArgumentResolver</node>
+    <node x="614.1343344155848" y="89.0">org.springframework.web.servlet.mvc.method.annotation.PathVariableMapMethodArgumentResolver</node>
+    <node x="3427.696834415585" y="188.0">org.springframework.web.servlet.mvc.method.annotation.RequestPartMethodArgumentResolver</node>
+    <node x="1610.9468344155848" y="89.0">org.springframework.web.method.annotation.AbstractNamedValueMethodArgumentResolver</node>
+    <node x="3615.196834415585" y="89.0">org.springframework.web.method.annotation.RequestHeaderMapMethodArgumentResolver</node>
+    <node x="3235.696834415585" y="267.0">org.springframework.web.servlet.mvc.method.annotation.RequestResponseBodyMethodProcessor</node>
+    <node x="1278.1343344155848" y="0.0">org.springframework.web.method.support.HandlerMethodArgumentResolver</node>
+    <node x="21.0" y="89.0">org.springframework.web.method.annotation.ModelAttributeMethodProcessor</node>
+    <node x="2444.696834415585" y="188.0">org.springframework.web.method.annotation.RequestParamMethodArgumentResolver</node>
+    <node x="1121.6968344155848" y="188.0">org.springframework.web.method.annotation.AbstractCookieValueMethodArgumentResolver</node>
+    <node x="0.0" y="188.0">org.springframework.web.servlet.mvc.method.annotation.ServletModelAttributeMethodProcessor</node>
+    <node x="1245.1343344155848" y="89.0">org.springframework.web.method.annotation.RequestParamMapMethodArgumentResolver</node>
+    <node x="2113.696834415585" y="188.0">org.springframework.web.servlet.mvc.method.annotation.SessionAttributeMethodArgumentResolver</node>
+    <node x="3219.196834415585" y="89.0">org.springframework.web.servlet.mvc.method.annotation.AbstractMessageConverterMethodArgumentResolver</node>
+    <node x="1478.6968344155848" y="188.0">org.springframework.web.servlet.mvc.method.annotation.PathVariableMethodArgumentResolver</node>
+    <node x="945.1343344155847" y="89.0">org.springframework.web.servlet.mvc.method.annotation.ServletWebArgumentResolverAdapter</node>
+    <node x="1127.1968344155848" y="267.0">org.springframework.web.servlet.mvc.method.annotation.ServletCookieValueMethodArgumentResolver</node>
+    <node x="788.6968344155848" y="188.0">org.springframework.web.servlet.mvc.method.annotation.RequestAttributeMethodArgumentResolver</node>
+    <node x="3082.696834415585" y="188.0">org.springframework.web.servlet.mvc.method.annotation.AbstractMessageConverterMethodProcessor</node>
+    <node x="473.6968344155848" y="188.0">org.springframework.web.servlet.mvc.method.annotation.MatrixVariableMethodArgumentResolver</node>
+    <node x="1783.6968344155848" y="188.0">org.springframework.web.method.annotation.ExpressionValueMethodArgumentResolver</node>
+    <node x="2994.696834415585" y="267.0">org.springframework.web.servlet.mvc.method.annotation.HttpEntityMethodProcessor</node>
+  </nodes>
+  <notes />
+  <edges>
+    <edge source="org.springframework.web.servlet.mvc.method.annotation.PathVariableMethodArgumentResolver" target="org.springframework.web.method.annotation.AbstractNamedValueMethodArgumentResolver">
+      <point x="0.0" y="-14.5" />
+      <point x="1621.1968344155848" y="168.0" />
+      <point x="1758.8218344155848" y="168.0" />
+      <point x="-21.125" y="14.5" />
+    </edge>
+    <edge source="org.springframework.web.servlet.mvc.method.annotation.AbstractMessageConverterMethodProcessor" target="org.springframework.web.servlet.mvc.method.annotation.AbstractMessageConverterMethodArgumentResolver">
+      <point x="0.0" y="-14.5" />
+      <point x="3245.196834415585" y="168.0" />
+      <point x="3313.196834415585" y="168.0" />
+      <point x="-94.0" y="14.5" />
+    </edge>
+    <edge source="org.springframework.web.method.annotation.AbstractCookieValueMethodArgumentResolver" target="org.springframework.web.method.annotation.AbstractNamedValueMethodArgumentResolver">
+      <point x="0.0" y="-14.5" />
+      <point x="1290.1968344155848" y="158.0" />
+      <point x="1716.5718344155848" y="158.0" />
+      <point x="-63.375" y="14.5" />
+    </edge>
+    <edge source="org.springframework.web.servlet.mvc.method.annotation.SessionAttributeMethodArgumentResolver" target="org.springframework.web.method.annotation.AbstractNamedValueMethodArgumentResolver">
+      <point x="0.0" y="-14.5" />
+      <point x="2269.196834415585" y="158.0" />
+      <point x="1843.3218344155848" y="158.0" />
+      <point x="63.375" y="14.5" />
+    </edge>
+    <edge source="org.springframework.web.servlet.mvc.method.annotation.AbstractMessageConverterMethodArgumentResolver" target="org.springframework.web.method.support.HandlerMethodArgumentResolver">
+      <point x="0.0" y="-14.5" />
+      <point x="3407.196834415585" y="59.0" />
+      <point x="1479.2771915584422" y="59.0" />
+      <point x="73.14285714285734" y="14.5" />
+    </edge>
+    <edge source="org.springframework.web.servlet.mvc.method.annotation.MatrixVariableMethodArgumentResolver" target="org.springframework.web.method.annotation.AbstractNamedValueMethodArgumentResolver">
+      <point x="0.0" y="-14.5" />
+      <point x="621.1968344155848" y="138.0" />
+      <point x="1632.0718344155848" y="138.0" />
+      <point x="-147.875" y="14.5" />
+    </edge>
+    <edge source="org.springframework.web.servlet.mvc.method.annotation.ServletModelAttributeMethodProcessor" target="org.springframework.web.method.annotation.ModelAttributeMethodProcessor">
+      <point x="0.0" y="-14.5" />
+      <point x="0.0" y="14.5" />
+    </edge>
+    <edge source="org.springframework.web.servlet.mvc.method.annotation.ServletCookieValueMethodArgumentResolver" target="org.springframework.web.method.annotation.AbstractCookieValueMethodArgumentResolver">
+      <point x="0.0" y="-14.5" />
+      <point x="0.0" y="14.5" />
+    </edge>
+    <edge source="org.springframework.web.servlet.mvc.method.annotation.HttpEntityMethodProcessor" target="org.springframework.web.servlet.mvc.method.annotation.AbstractMessageConverterMethodProcessor">
+      <point x="0.0" y="-14.5" />
+      <point x="3105.196834415585" y="242.0" />
+      <point x="3163.946834415585" y="242.0" />
+      <point x="-81.25" y="14.5" />
+    </edge>
+    <edge source="org.springframework.web.method.annotation.ExpressionValueMethodArgumentResolver" target="org.springframework.web.method.annotation.AbstractNamedValueMethodArgumentResolver">
+      <point x="0.0" y="-14.5" />
+      <point x="1938.6968344155848" y="168.0" />
+      <point x="1801.0718344155848" y="168.0" />
+      <point x="21.125" y="14.5" />
+    </edge>
+    <edge source="org.springframework.web.method.annotation.RequestParamMethodArgumentResolver" target="org.springframework.web.method.annotation.AbstractNamedValueMethodArgumentResolver">
+      <point x="0.0" y="-14.5" />
+      <point x="2592.696834415585" y="148.0" />
+      <point x="1885.5718344155848" y="148.0" />
+      <point x="105.625" y="14.5" />
+    </edge>
+    <edge source="org.springframework.web.servlet.mvc.method.annotation.PathVariableMapMethodArgumentResolver" target="org.springframework.web.method.support.HandlerMethodArgumentResolver">
+      <point x="0.0" y="-14.5" />
+      <point x="769.6343344155848" y="59.0" />
+      <point x="1332.9914772727275" y="59.0" />
+      <point x="-73.14285714285734" y="14.5" />
+    </edge>
+    <edge source="org.springframework.web.servlet.mvc.method.annotation.RequestResponseBodyMethodProcessor" target="org.springframework.web.servlet.mvc.method.annotation.AbstractMessageConverterMethodProcessor">
+      <point x="0.0" y="-14.5" />
+      <point x="3385.196834415585" y="242.0" />
+      <point x="3326.446834415585" y="242.0" />
+      <point x="81.25" y="14.5" />
+    </edge>
+    <edge source="org.springframework.web.servlet.mvc.method.annotation.RequestPartMethodArgumentResolver" target="org.springframework.web.servlet.mvc.method.annotation.AbstractMessageConverterMethodArgumentResolver">
+      <point x="0.0" y="-14.5" />
+      <point x="3569.196834415585" y="168.0" />
+      <point x="3501.196834415585" y="168.0" />
+      <point x="94.0" y="14.5" />
+    </edge>
+    <edge source="org.springframework.web.servlet.mvc.method.annotation.ServletWebArgumentResolverAdapter" target="org.springframework.web.method.support.HandlerMethodArgumentResolver">
+      <point x="0.0" y="-14.5" />
+      <point x="1085.1343344155848" y="69.0" />
+      <point x="1369.5629058441564" y="69.0" />
+      <point x="-36.57142857142844" y="14.5" />
+    </edge>
+    <edge source="org.springframework.web.method.annotation.RequestHeaderMethodArgumentResolver" target="org.springframework.web.method.annotation.AbstractNamedValueMethodArgumentResolver">
+      <point x="0.0" y="-14.5" />
+      <point x="2911.696834415585" y="138.0" />
+      <point x="1927.8218344155848" y="138.0" />
+      <point x="147.875" y="14.5" />
+    </edge>
+    <edge source="org.springframework.web.method.annotation.AbstractNamedValueMethodArgumentResolver" target="org.springframework.web.method.support.HandlerMethodArgumentResolver">
+      <point x="0.0" y="-14.5" />
+      <point x="1779.9468344155848" y="69.0" />
+      <point x="1442.7057629870133" y="69.0" />
+      <point x="36.57142857142844" y="14.5" />
+    </edge>
+    <edge source="org.springframework.web.method.annotation.RequestHeaderMapMethodArgumentResolver" target="org.springframework.web.method.support.HandlerMethodArgumentResolver">
+      <point x="0.0" y="-14.5" />
+      <point x="3779.196834415585" y="49.0" />
+      <point x="1515.8486201298706" y="49.0" />
+      <point x="109.71428571428578" y="14.5" />
+    </edge>
+    <edge source="org.springframework.web.method.annotation.RequestParamMapMethodArgumentResolver" target="org.springframework.web.method.support.HandlerMethodArgumentResolver">
+      <point x="0.0" y="-14.5" />
+      <point x="0.0" y="14.5" />
+    </edge>
+    <edge source="org.springframework.web.servlet.mvc.method.annotation.RequestAttributeMethodArgumentResolver" target="org.springframework.web.method.annotation.AbstractNamedValueMethodArgumentResolver">
+      <point x="0.0" y="-14.5" />
+      <point x="945.1968344155848" y="148.0" />
+      <point x="1674.3218344155848" y="148.0" />
+      <point x="-105.625" y="14.5" />
+    </edge>
+    <edge source="org.springframework.web.method.annotation.ModelAttributeMethodProcessor" target="org.springframework.web.method.support.HandlerMethodArgumentResolver">
+      <point x="0.0" y="-14.5" />
+      <point x="145.5" y="49.0" />
+      <point x="1296.420048701299" y="49.0" />
+      <point x="-109.71428571428578" y="14.5" />
+    </edge>
+  </edges>
+  <settings layout="Hierarchic Group" zoom="1.0" x="904.5" y="93.5" />
+  <SelectedNodes />
+  <Categories />
+  <SCOPE>All</SCOPE>
+  <VISIBILITY>private</VISIBILITY>
+</Diagram>
+

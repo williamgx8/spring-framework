@@ -27,14 +27,16 @@ import org.springframework.web.context.request.NativeWebRequest;
  * the context of a given request.
  *
  * @author Arjen Poutsma
- * @since 3.1
  * @see HandlerMethodReturnValueHandler
+ * @since 3.1
  */
 public interface HandlerMethodArgumentResolver {
 
 	/**
+	 * 是否支持对参数parameter的解析
 	 * Whether the given {@linkplain MethodParameter method parameter} is
 	 * supported by this resolver.
+	 *
 	 * @param parameter the method parameter to check
 	 * @return {@code true} if this resolver supports the supplied parameter;
 	 * {@code false} otherwise
@@ -42,11 +44,13 @@ public interface HandlerMethodArgumentResolver {
 	boolean supportsParameter(MethodParameter parameter);
 
 	/**
+	 * 解析参数parameter
 	 * Resolves a method parameter into an argument value from a given request.
 	 * A {@link ModelAndViewContainer} provides access to the model for the
 	 * request. A {@link WebDataBinderFactory} provides a way to create
 	 * a {@link WebDataBinder} instance when needed for data binding and
 	 * type conversion purposes.
+	 *
 	 * @param parameter the method parameter to resolve. This parameter must
 	 * have previously been passed to {@link #supportsParameter} which must
 	 * have returned {@code true}.
@@ -58,6 +62,7 @@ public interface HandlerMethodArgumentResolver {
 	 */
 	@Nullable
 	Object resolveArgument(MethodParameter parameter, @Nullable ModelAndViewContainer mavContainer,
-			NativeWebRequest webRequest, @Nullable WebDataBinderFactory binderFactory) throws Exception;
+			NativeWebRequest webRequest, @Nullable WebDataBinderFactory binderFactory)
+			throws Exception;
 
 }
