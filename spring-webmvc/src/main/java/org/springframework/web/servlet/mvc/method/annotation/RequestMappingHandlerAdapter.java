@@ -939,14 +939,18 @@ public class RequestMappingHandlerAdapter extends AbstractHandlerMethodAdapter
 			//获得模型工厂，与@ModelAndAttribute等视图注解相关，在前后端分离的目前来看用处不大
 			ModelFactory modelFactory = getModelFactory(handlerMethod, binderFactory);
 
+			//创建ServletInvocableHandlerMethod，其实就是将HandlerMethod中的属性分拆到了ServletInvocableHandlerMethod中
 			ServletInvocableHandlerMethod invocableMethod = createInvocableHandlerMethod(
 					handlerMethod);
+			//设置所有的参数解析器
 			if (this.argumentResolvers != null) {
 				invocableMethod.setHandlerMethodArgumentResolvers(this.argumentResolvers);
 			}
+			//设置所有的ReturnValueHandler
 			if (this.returnValueHandlers != null) {
 				invocableMethod.setHandlerMethodReturnValueHandlers(this.returnValueHandlers);
 			}
+			//设置包含各种@InitBinder的DataBinderFactory
 			invocableMethod.setDataBinderFactory(binderFactory);
 			invocableMethod.setParameterNameDiscoverer(this.parameterNameDiscoverer);
 
@@ -955,6 +959,7 @@ public class RequestMappingHandlerAdapter extends AbstractHandlerMethodAdapter
 			modelFactory.initModel(webRequest, mavContainer, invocableMethod);
 			mavContainer.setIgnoreDefaultModelOnRedirect(this.ignoreDefaultModelOnRedirect);
 
+			//异步请求
 			AsyncWebRequest asyncWebRequest = WebAsyncUtils
 					.createAsyncWebRequest(request, response);
 			asyncWebRequest.setTimeout(this.asyncRequestTimeout);
@@ -976,11 +981,13 @@ public class RequestMappingHandlerAdapter extends AbstractHandlerMethodAdapter
 				invocableMethod = invocableMethod.wrapConcurrentResult(result);
 			}
 
+			//执行调用
 			invocableMethod.invokeAndHandle(webRequest, mavContainer);
 			if (asyncManager.isConcurrentHandlingStarted()) {
 				return null;
 			}
 
+			//将结果解析成ModelAndView
 			return getModelAndView(mavContainer, modelFactory, webRequest);
 		} finally {
 			webRequest.requestCompleted();

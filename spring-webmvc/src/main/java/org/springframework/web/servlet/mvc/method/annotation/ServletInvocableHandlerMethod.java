@@ -99,23 +99,32 @@ public class ServletInvocableHandlerMethod extends InvocableHandlerMethod {
 	public void invokeAndHandle(ServletWebRequest webRequest, ModelAndViewContainer mavContainer,
 			Object... providedArgs) throws Exception {
 
+		//调用请求对应方法获得返回值
 		Object returnValue = invokeForRequest(webRequest, mavContainer, providedArgs);
+		//设置响应状态码
 		setResponseStatus(webRequest);
 
+		//没有返回值的方法
 		if (returnValue == null) {
+			//如果是还在last-modified的缓存时间内没有更改，或者存在响应吗，或者请求已经被处理
 			if (isRequestNotModified(webRequest) || getResponseStatus() != null || mavContainer.isRequestHandled()) {
+				//设置请求已经被处理
 				mavContainer.setRequestHandled(true);
+				//返回
 				return;
 			}
 		}
+		//存在响应码原因，也已经成功调用
 		else if (StringUtils.hasText(getResponseStatusReason())) {
 			mavContainer.setRequestHandled(true);
 			return;
 		}
 
+		//否则都是没有处理的请求
 		mavContainer.setRequestHandled(false);
 		Assert.state(this.returnValueHandlers != null, "No return value handlers");
 		try {
+			//调用合适的一个HandlerMethodReturnValueHandler处理返回值
 			this.returnValueHandlers.handleReturnValue(
 					returnValue, getReturnValueType(returnValue), mavContainer, webRequest);
 		}

@@ -436,8 +436,10 @@ public class HandlerMethod {
 	@Nullable
 	protected static Object findProvidedArgument(MethodParameter parameter,
 			@Nullable Object... providedArgs) {
+		//遍历每一个原始请求参数值
 		if (!ObjectUtils.isEmpty(providedArgs)) {
 			for (Object providedArg : providedArgs) {
+				//如果当前遍历到的参数值是parameter参数类型的实例，那说明这个参数值和这个MethodParameter是一一对应的
 				if (parameter.getParameterType().isInstance(providedArg)) {
 					return providedArg;
 				}

@@ -109,6 +109,7 @@ public class InvocableHandlerMethod extends HandlerMethod {
 
 
 	/**
+	 * 调用请求方法
 	 * Invoke the method after resolving its argument values in the context of the given request.
 	 * <p>Argument values are commonly resolved through
 	 * {@link HandlerMethodArgumentResolver HandlerMethodArgumentResolvers}.
@@ -131,6 +132,7 @@ public class InvocableHandlerMethod extends HandlerMethod {
 	public Object invokeForRequest(NativeWebRequest request, @Nullable ModelAndViewContainer mavContainer,
 			Object... providedArgs) throws Exception {
 
+		//获取请求参数值列表
 		Object[] args = getMethodArgumentValues(request, mavContainer, providedArgs);
 		if (logger.isTraceEnabled()) {
 			logger.trace("Arguments: " + Arrays.toString(args));
@@ -139,6 +141,7 @@ public class InvocableHandlerMethod extends HandlerMethod {
 	}
 
 	/**
+	 * 根据请求传递的原始的请求参数值获得处理后的请求参数值列表
 	 * Get the method argument values for the current request, checking the provided
 	 * argument values and falling back to the configured argument resolvers.
 	 * <p>The resulting array will be passed into {@link #doInvoke}.
@@ -150,19 +153,27 @@ public class InvocableHandlerMethod extends HandlerMethod {
 		if (ObjectUtils.isEmpty(getMethodParameters())) {
 			return EMPTY_ARGS;
 		}
+		//方法参数列表
 		MethodParameter[] parameters = getMethodParameters();
+		//有多少个参数，就有多少个值
 		Object[] args = new Object[parameters.length];
 		for (int i = 0; i < parameters.length; i++) {
 			MethodParameter parameter = parameters[i];
+			//设置该参数的参数名称发现策略
 			parameter.initParameterNameDiscovery(this.parameterNameDiscoverer);
 			args[i] = findProvidedArgument(parameter, providedArgs);
+			//参数和参数值对应上了就继续判断下一个参数
 			if (args[i] != null) {
 				continue;
 			}
+			//没有对应上，可能需要参数解析器处理
+			//判断是否又可以解析parameter参数的参数解析器
 			if (!this.resolvers.supportsParameter(parameter)) {
+				//没有直接报错
 				throw new IllegalStateException(formatArgumentError(parameter, "No suitable resolver"));
 			}
 			try {
+				//找到对应的参数解析器，进行参数的解析
 				args[i] = this.resolvers.resolveArgument(parameter, mavContainer, request, this.dataBinderFactory);
 			}
 			catch (Exception ex) {

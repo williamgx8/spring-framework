@@ -127,17 +127,24 @@ public class HandlerMethodArgumentResolverComposite implements HandlerMethodArgu
 	}
 
 	/**
+	 * 获取parameter参数对应的参数解析器
 	 * Find a registered {@link HandlerMethodArgumentResolver} that supports
 	 * the given method parameter.
 	 */
 	@Nullable
 	private HandlerMethodArgumentResolver getArgumentResolver(MethodParameter parameter) {
+		//从缓存中查看有没有
 		HandlerMethodArgumentResolver result = this.argumentResolverCache.get(parameter);
 		if (result == null) {
+			//缓存中没有，遍历所有的解析器
 			for (HandlerMethodArgumentResolver methodArgumentResolver : this.argumentResolvers) {
+				//判断是否支持，如果自定义话，这里就是一个用户需要实现的方法
 				if (methodArgumentResolver.supportsParameter(parameter)) {
+					//支持该解析器就是目标解析器
 					result = methodArgumentResolver;
+					//放入缓存
 					this.argumentResolverCache.put(parameter, result);
+					//不需要再继续了
 					break;
 				}
 			}
