@@ -33,6 +33,7 @@ import org.springframework.web.context.request.NativeWebRequest;
 import org.springframework.web.method.HandlerMethod;
 
 /**
+ * 封装了请求对应方法HandlerMethod的进一步实现，包含最终invoke原始方法的流程
  * Extension of {@link HandlerMethod} that invokes the underlying method with
  * argument values resolved from the current HTTP request through a list of
  * {@link HandlerMethodArgumentResolver}.
