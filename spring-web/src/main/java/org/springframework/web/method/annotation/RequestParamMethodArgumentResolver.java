@@ -48,6 +48,7 @@ import org.springframework.web.multipart.support.MultipartResolutionDelegate;
 import org.springframework.web.util.UriComponentsBuilder;
 
 /**
+ * 对{@code @RequestParam}对应配置参数进行解析的解析器
  * Resolves method arguments annotated with @{@link RequestParam}, arguments of
  * type {@link MultipartFile} in conjunction with Spring's {@link MultipartResolver}
  * abstraction, and arguments of type {@code javax.servlet.http.Part} in conjunction
@@ -123,35 +124,54 @@ public class RequestParamMethodArgumentResolver extends AbstractNamedValueMethod
 	 */
 	@Override
 	public boolean supportsParameter(MethodParameter parameter) {
+		//能支持该解析器处理的参数肯定要有@RequestParam注释
 		if (parameter.hasParameterAnnotation(RequestParam.class)) {
+			//参数的真实类型是Map的子类
 			if (Map.class.isAssignableFrom(parameter.nestedIfOptional().getNestedParameterType())) {
+				//获得@RequestParam注解对象
 				RequestParam requestParam = parameter.getParameterAnnotation(RequestParam.class);
+				//注解对象存在且配置了对应的参数名称可以处理，没有配置参数名交由解析器链中的下一个RequestParamMapMethodArgumentResolver处理
 				return (requestParam != null && StringUtils.hasText(requestParam.name()));
 			}
 			else {
+				//不是Map类型只要配置了注解都支持
 				return true;
 			}
 		}
+		//参数没有@RequestParam注解
 		else {
+			//存在@RequestPart注解不支持
 			if (parameter.hasParameterAnnotation(RequestPart.class)) {
 				return false;
 			}
+			//真实参数类型
 			parameter = parameter.nestedIfOptional();
+			//是和文件上传相关参数支持
 			if (MultipartResolutionDelegate.isMultipartArgument(parameter)) {
 				return true;
 			}
+			//是否支持默认解析
 			else if (this.useDefaultResolution) {
+				//只要是一些定义的简单类型，或者简单类型的数组也支持
 				return BeanUtils.isSimpleProperty(parameter.getNestedParameterType());
 			}
+			//其他不支持
 			else {
 				return false;
 			}
 		}
 	}
 
+	/**
+	 * 创建参数对象parameter对应的  参数名--参数值映射对象
+	 * @param parameter the method parameter
+	 * @return
+	 */
 	@Override
 	protected NamedValueInfo createNamedValueInfo(MethodParameter parameter) {
+		//@RequestParam注解对象
 		RequestParam ann = parameter.getParameterAnnotation(RequestParam.class);
+		//将注解中的value、required和defaultValue三个属性值封装成RequestParamNamedValueInfo
 		return (ann != null ? new RequestParamNamedValueInfo(ann) : new RequestParamNamedValueInfo());
 	}
 

@@ -42,6 +42,7 @@ import org.springframework.web.servlet.View;
 import org.springframework.web.util.UriComponentsBuilder;
 
 /**
+ * 处理非不带名称的Map类型的{@code @PathVariable}参数解析器
  * Resolves method arguments annotated with an @{@link PathVariable}.
  *
  * <p>An @{@link PathVariable} is a named value that gets resolved from a URI template variable.
@@ -70,20 +71,25 @@ public class PathVariableMethodArgumentResolver extends AbstractNamedValueMethod
 
 	@Override
 	public boolean supportsParameter(MethodParameter parameter) {
+		//如果没有@PathVariable直接false
 		if (!parameter.hasParameterAnnotation(PathVariable.class)) {
 			return false;
 		}
+		//对于参数类型为Map但没有配置名称的不支持
 		if (Map.class.isAssignableFrom(parameter.nestedIfOptional().getNestedParameterType())) {
 			PathVariable pathVariable = parameter.getParameterAnnotation(PathVariable.class);
 			return (pathVariable != null && StringUtils.hasText(pathVariable.value()));
 		}
+		//其余情况都支持
 		return true;
 	}
 
 	@Override
 	protected NamedValueInfo createNamedValueInfo(MethodParameter parameter) {
+		//@PathVariable注解
 		PathVariable ann = parameter.getParameterAnnotation(PathVariable.class);
 		Assert.state(ann != null, "No PathVariable annotation");
+		//将value、required和defaultValue封装成PathVariableNamedValueInfo
 		return new PathVariableNamedValueInfo(ann);
 	}
 
@@ -91,6 +97,8 @@ public class PathVariableMethodArgumentResolver extends AbstractNamedValueMethod
 	@SuppressWarnings("unchecked")
 	@Nullable
 	protected Object resolveName(String name, MethodParameter parameter, NativeWebRequest request) throws Exception {
+		//直接从request属性中获取，因为解析@RequestMapping时肯定要解析对应的路径变量，那么在此时赋值的时候就不需要再解析一遍了
+		//往request参数中塞入的逻辑在RequestMappingInfoHandlerMapping#handleMatch
 		Map<String, String> uriTemplateVars = (Map<String, String>) request.getAttribute(
 				HandlerMapping.URI_TEMPLATE_VARIABLES_ATTRIBUTE, RequestAttributes.SCOPE_REQUEST);
 		return (uriTemplateVars != null ? uriTemplateVars.get(name) : null);
@@ -106,13 +114,18 @@ public class PathVariableMethodArgumentResolver extends AbstractNamedValueMethod
 	protected void handleResolvedValue(@Nullable Object arg, String name, MethodParameter parameter,
 			@Nullable ModelAndViewContainer mavContainer, NativeWebRequest request) {
 
+		//放入request属性中的key
 		String key = View.PATH_VARIABLES;
+		//属性的作用域
 		int scope = RequestAttributes.SCOPE_REQUEST;
+		//查找key对应值
 		Map<String, Object> pathVars = (Map<String, Object>) request.getAttribute(key, scope);
 		if (pathVars == null) {
+			//不存在就创建一个放入request中
 			pathVars = new HashMap<>();
 			request.setAttribute(key, pathVars, scope);
 		}
+		//将值放入pathVars，pathVars被request引用，所有request中也有了
 		pathVars.put(name, arg);
 	}
 

@@ -693,12 +693,16 @@ public class RequestMappingHandlerAdapter extends AbstractHandlerMethodAdapter
 	 */
 	private List<HandlerMethodArgumentResolver> getDefaultArgumentResolvers() {
 		List<HandlerMethodArgumentResolver> resolvers = new ArrayList<>();
-
+		//放在前面的，在解析的时候先进行判断
 		// Annotation-based argument resolution
 		//基于注解的参数解析器
+		//普通的@RequestParam参数对应的解析器，第二个参数表示不对普通类型和普通类型数组的参数进行处理
 		resolvers.add(new RequestParamMethodArgumentResolver(getBeanFactory(), false));
+		//参数类型是Map的@RequestParam解析器
 		resolvers.add(new RequestParamMapMethodArgumentResolver());
+		//普通的@PathVariable参数解析器
 		resolvers.add(new PathVariableMethodArgumentResolver());
+		//参数类型是Map的@PathVariable解析器
 		resolvers.add(new PathVariableMapMethodArgumentResolver());
 		resolvers.add(new MatrixVariableMethodArgumentResolver());
 		resolvers.add(new MatrixVariableMapMethodArgumentResolver());
@@ -734,6 +738,7 @@ public class RequestMappingHandlerAdapter extends AbstractHandlerMethodAdapter
 		}
 
 		// Catch-all
+		//第一个RequestParamMethodArgumentResolver不对普通类型和普通类型的数组参数进行处理，这里做个兜底处理
 		resolvers.add(new RequestParamMethodArgumentResolver(getBeanFactory(), true));
 		resolvers.add(new ServletModelAttributeMethodProcessor(true));
 
@@ -921,6 +926,7 @@ public class RequestMappingHandlerAdapter extends AbstractHandlerMethodAdapter
 	}
 
 	/**
+	 * 调用目标请求方法
 	 * Invoke the {@link RequestMapping} handler method preparing a {@link ModelAndView}
 	 * if view resolution is required.
 	 *
