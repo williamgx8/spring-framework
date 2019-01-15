@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Diagram>
+  <ID>JAVA</ID>
+  <OriginalElement>org.springframework.web.method.support.HandlerMethodReturnValueHandler</OriginalElement>
+  <nodes>
+    <node x="1560.0" y="129.0">org.springframework.web.servlet.mvc.method.annotation.ViewNameMethodReturnValueHandler</node>
+    <node x="3411.0" y="129.0">org.springframework.web.method.annotation.MapMethodProcessor</node>
+    <node x="964.0" y="129.0">org.springframework.web.servlet.mvc.method.annotation.ViewMethodReturnValueHandler</node>
+    <node x="290.0" y="129.0">org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBodyReturnValueHandler</node>
+    <node x="2344.0" y="208.0">org.springframework.web.servlet.mvc.method.annotation.RequestResponseBodyMethodProcessor</node>
+    <node x="1231.0" y="129.0">org.springframework.web.servlet.mvc.method.annotation.DeferredResultMethodReturnValueHandler</node>
+    <node x="1862.0" y="129.0">org.springframework.web.servlet.mvc.method.annotation.CallableMethodReturnValueHandler</node>
+    <node x="4246.0" y="129.0">org.springframework.web.servlet.mvc.method.annotation.HttpHeadersReturnValueHandler</node>
+    <node x="21.0" y="129.0">org.springframework.web.method.annotation.ModelAttributeMethodProcessor</node>
+    <node x="2816.0" y="129.0">org.springframework.web.method.annotation.ModelMethodProcessor</node>
+    <node x="0.0" y="208.0">org.springframework.web.servlet.mvc.method.annotation.ServletModelAttributeMethodProcessor</node>
+    <node x="3614.0" y="129.0">org.springframework.web.servlet.mvc.method.annotation.ResponseBodyEmitterReturnValueHandler</node>
+    <node x="635.0" y="129.0">org.springframework.web.servlet.mvc.method.annotation.ModelAndViewMethodReturnValueHandler</node>
+    <node x="3030.0" y="129.0">org.springframework.web.servlet.mvc.method.annotation.ModelAndViewResolverMethodReturnValueHandler</node>
+    <node x="2471.0" y="129.0">org.springframework.web.servlet.mvc.method.annotation.AbstractMessageConverterMethodProcessor</node>
+    <node x="2147.0" y="129.0">org.springframework.web.method.support.AsyncHandlerMethodReturnValueHandler</node>
+    <node x="2663.0" y="208.0">org.springframework.web.servlet.mvc.method.annotation.HttpEntityMethodProcessor</node>
+    <node x="3941.0" y="129.0">org.springframework.web.servlet.mvc.method.annotation.AsyncTaskMethodReturnValueHandler</node>
+    <node x="2166.0" y="0.0">org.springframework.web.method.support.HandlerMethodReturnValueHandler</node>
+  </nodes>
+  <notes />
+  <edges>
+    <edge source="org.springframework.web.servlet.mvc.method.annotation.AbstractMessageConverterMethodProcessor" target="org.springframework.web.method.support.HandlerMethodReturnValueHandler">
+      <point x="0.0" y="-14.5" />
+      <point x="2633.5" y="109.0" />
+      <point x="2316.733333333333" y="109.0" />
+      <point x="17.73333333333312" y="14.5" />
+    </edge>
+    <edge source="org.springframework.web.servlet.mvc.method.annotation.ServletModelAttributeMethodProcessor" target="org.springframework.web.method.annotation.ModelAttributeMethodProcessor">
+      <point x="0.0" y="-14.5" />
+      <point x="0.0" y="14.5" />
+    </edge>
+    <edge source="org.springframework.web.servlet.mvc.method.annotation.ResponseBodyEmitterReturnValueHandler" target="org.springframework.web.method.support.HandlerMethodReturnValueHandler">
+      <point x="0.0" y="-14.5" />
+      <point x="3767.5" y="69.0" />
+      <point x="2387.6666666666665" y="69.0" />
+      <point x="88.66666666666652" y="14.5" />
+    </edge>
+    <edge source="org.springframework.web.servlet.mvc.method.annotation.HttpHeadersReturnValueHandler" target="org.springframework.web.method.support.HandlerMethodReturnValueHandler">
+      <point x="0.0" y="-14.5" />
+      <point x="4371.0" y="49.0" />
+      <point x="2423.133333333333" y="49.0" />
+      <point x="124.13333333333321" y="14.5" />
+    </edge>
+    <edge source="org.springframework.web.servlet.mvc.method.annotation.ViewNameMethodReturnValueHandler" target="org.springframework.web.method.support.HandlerMethodReturnValueHandler">
+      <point x="0.0" y="-14.5" />
+      <point x="1701.0" y="99.0" />
+      <point x="2263.5333333333333" y="99.0" />
+      <point x="-35.4666666666667" y="14.5" />
+    </edge>
+    <edge source="org.springframework.web.servlet.mvc.method.annotation.HttpEntityMethodProcessor" target="org.springframework.web.servlet.mvc.method.annotation.AbstractMessageConverterMethodProcessor">
+      <point x="2.2737367544323206E-13" y="-14.5" />
+      <point x="2773.5" y="183.0" />
+      <point x="2714.75" y="183.0" />
+      <point x="81.25" y="14.5" />
+    </edge>
+    <edge source="org.springframework.web.method.annotation.ModelAttributeMethodProcessor" target="org.springframework.web.method.support.HandlerMethodReturnValueHandler">
+      <point x="0.0" y="-14.5" />
+      <point x="145.5" y="49.0" />
+      <point x="2174.866666666667" y="49.0" />
+      <point x="-124.13333333333321" y="14.5" />
+    </edge>
+    <edge source="org.springframework.web.servlet.mvc.method.annotation.ViewMethodReturnValueHandler" target="org.springframework.web.method.support.HandlerMethodReturnValueHandler">
+      <point x="0.0" y="-14.5" />
+      <point x="1087.5" y="79.0" />
+      <point x="2228.0666666666666" y="79.0" />
+      <point x="-70.9333333333334" y="14.5" />
+    </edge>
+    <edge source="org.springframework.web.method.support.AsyncHandlerMethodReturnValueHandler" target="org.springframework.web.method.support.HandlerMethodReturnValueHandler">
+      <point x="0.0" y="-14.5" />
+      <point x="0.0" y="14.5" />
+    </edge>
+    <edge source="org.springframework.web.servlet.mvc.method.annotation.ModelAndViewMethodReturnValueHandler" target="org.springframework.web.method.support.HandlerMethodReturnValueHandler">
+      <point x="0.0" y="-14.5" />
+      <point x="789.5" y="69.0" />
+      <point x="2210.3333333333335" y="69.0" />
+      <point x="-88.66666666666652" y="14.5" />
+    </edge>
+    <edge source="org.springframework.web.servlet.mvc.method.annotation.RequestResponseBodyMethodProcessor" target="org.springframework.web.servlet.mvc.method.annotation.AbstractMessageConverterMethodProcessor">
+      <point x="0.0" y="-14.5" />
+      <point x="2493.5" y="183.0" />
+      <point x="2552.25" y="183.0" />
+      <point x="-81.25" y="14.5" />
+    </edge>
+    <edge source="org.springframework.web.servlet.mvc.method.annotation.AsyncTaskMethodReturnValueHandler" target="org.springframework.web.method.support.HandlerMethodReturnValueHandler">
+      <point x="0.0" y="-14.5" />
+      <point x="4083.5" y="59.0" />
+      <point x="2405.4" y="59.0" />
+      <point x="106.40000000000009" y="14.5" />
+    </edge>
+    <edge source="org.springframework.web.method.annotation.MapMethodProcessor" target="org.springframework.web.method.support.HandlerMethodReturnValueHandler">
+      <point x="0.0" y="-14.5" />
+      <point x="3502.5" y="79.0" />
+      <point x="2369.9333333333334" y="79.0" />
+      <point x="70.9333333333334" y="14.5" />
+    </edge>
+    <edge source="org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBodyReturnValueHandler" target="org.springframework.web.method.support.HandlerMethodReturnValueHandler">
+      <point x="0.0" y="-14.5" />
+      <point x="452.5" y="59.0" />
+      <point x="2192.6" y="59.0" />
+      <point x="-106.40000000000009" y="14.5" />
+    </edge>
+    <edge source="org.springframework.web.servlet.mvc.method.annotation.ModelAndViewResolverMethodReturnValueHandler" target="org.springframework.web.method.support.HandlerMethodReturnValueHandler">
+      <point x="0.0" y="-14.5" />
+      <point x="3210.5" y="89.0" />
+      <point x="2352.2" y="89.0" />
+      <point x="53.19999999999982" y="14.5" />
+    </edge>
+    <edge source="org.springframework.web.servlet.mvc.method.annotation.CallableMethodReturnValueHandler" target="org.springframework.web.method.support.HandlerMethodReturnValueHandler">
+      <point x="0.0" y="-14.5" />
+      <point x="1994.5" y="109.0" />
+      <point x="2281.2666666666664" y="109.0" />
+      <point x="-17.733333333333576" y="14.5" />
+    </edge>
+    <edge source="org.springframework.web.method.annotation.ModelMethodProcessor" target="org.springframework.web.method.support.HandlerMethodReturnValueHandler">
+      <point x="0.0" y="-14.5" />
+      <point x="2913.0" y="99.0" />
+      <point x="2334.4666666666667" y="99.0" />
+      <point x="35.4666666666667" y="14.5" />
+    </edge>
+    <edge source="org.springframework.web.servlet.mvc.method.annotation.DeferredResultMethodReturnValueHandler" target="org.springframework.web.method.support.HandlerMethodReturnValueHandler">
+      <point x="0.0" y="-14.5" />
+      <point x="1385.5" y="89.0" />
+      <point x="2245.8" y="89.0" />
+      <point x="-53.19999999999982" y="14.5" />
+    </edge>
+  </edges>
+  <settings layout="Hierarchic Group" zoom="1.0" x="897.0" y="14.5" />
+  <SelectedNodes />
+  <Categories />
+  <SCOPE>All</SCOPE>
+  <VISIBILITY>private</VISIBILITY>
+</Diagram>
+
