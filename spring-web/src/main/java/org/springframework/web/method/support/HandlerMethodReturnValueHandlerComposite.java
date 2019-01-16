@@ -37,9 +37,8 @@ import org.springframework.web.context.request.NativeWebRequest;
 public class HandlerMethodReturnValueHandlerComposite implements HandlerMethodReturnValueHandler {
 
 	protected final Log logger = LogFactory.getLog(getClass());
-
+	//包含的所有返回值处理器
 	private final List<HandlerMethodReturnValueHandler> returnValueHandlers = new ArrayList<>();
-
 
 	/**
 	 * Return a read-only list with the registered handlers, or an empty list.
@@ -49,6 +48,7 @@ public class HandlerMethodReturnValueHandlerComposite implements HandlerMethodRe
 	}
 
 	/**
+	 * 从整体上判断是否能够处理返回值
 	 * Whether the given {@linkplain MethodParameter method return type} is supported by any registered
 	 * {@link HandlerMethodReturnValueHandler}.
 	 */
@@ -57,9 +57,17 @@ public class HandlerMethodReturnValueHandlerComposite implements HandlerMethodRe
 		return getReturnValueHandler(returnType) != null;
 	}
 
+	/**
+	 * 获得返回值对应的处理器
+	 *
+	 * @param returnType
+	 * @return
+	 */
 	@Nullable
 	private HandlerMethodReturnValueHandler getReturnValueHandler(MethodParameter returnType) {
+		//遍历所有返回值处理器
 		for (HandlerMethodReturnValueHandler handler : this.returnValueHandlers) {
+			//依次判断能否处理该返回值
 			if (handler.supportsReturnType(returnType)) {
 				return handler;
 			}
@@ -76,7 +84,7 @@ public class HandlerMethodReturnValueHandlerComposite implements HandlerMethodRe
 	 */
 	@Override
 	public void handleReturnValue(@Nullable Object returnValue, MethodParameter returnType,
-			ModelAndViewContainer mavContainer, NativeWebRequest webRequest) throws Exception {
+								  ModelAndViewContainer mavContainer, NativeWebRequest webRequest) throws Exception {
 
 		//选择一个合适处理返回值的处理器
 		HandlerMethodReturnValueHandler handler = selectHandler(returnValue, returnType);
@@ -91,7 +99,7 @@ public class HandlerMethodReturnValueHandlerComposite implements HandlerMethodRe
 
 	@Nullable
 	private HandlerMethodReturnValueHandler selectHandler(@Nullable Object value,
-			MethodParameter returnType) {
+														  MethodParameter returnType) {
 		//是否是异步返回值
 		boolean isAsyncValue = isAsyncReturnValue(value, returnType);
 		//遍历每一个结果处理器

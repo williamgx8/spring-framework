@@ -49,19 +49,25 @@ import org.springframework.web.bind.support.SimpleSessionStatus;
  */
 public class ModelAndViewContainer {
 
+	//是否在重定向时忽略redirectModel
 	private boolean ignoreDefaultModelOnRedirect = false;
 
 	@Nullable
+	//视图对象
 	private Object view;
 
+	//Model对象
 	private final ModelMap defaultModel = new BindingAwareModelMap();
 
 	@Nullable
+	//重定向后的Model
 	private ModelMap redirectModel;
 
+	//处理器返回redirect视图的标识
 	private boolean redirectModelScenario = false;
 
 	@Nullable
+	//响应状态
 	private HttpStatus status;
 
 	private final Set<String> noBinding = new HashSet<>(4);
@@ -70,6 +76,7 @@ public class ModelAndViewContainer {
 
 	private final SessionStatus sessionStatus = new SimpleSessionStatus();
 
+	//请求已被处理标识
 	private boolean requestHandled = false;
 
 
@@ -138,10 +145,13 @@ public class ModelAndViewContainer {
 	 * a method argument) and {@code ignoreDefaultModelOnRedirect=false}.
 	 */
 	public ModelMap getModel() {
+		//是否使用默认Model
 		if (useDefaultModel()) {
+			//返回默认Model
 			return this.defaultModel;
 		}
 		else {
+			//重定向Model为空创建一个，否则直接返回
 			if (this.redirectModel == null) {
 				this.redirectModel = new ModelMap();
 			}
@@ -153,6 +163,7 @@ public class ModelAndViewContainer {
 	 * Whether to use the default model or the redirect model.
 	 */
 	private boolean useDefaultModel() {
+		//当重定向视图标识为false或者不存在重定向model且忽略重定向model时使用默认视图
 		return (!this.redirectModelScenario || (this.redirectModel == null && !this.ignoreDefaultModelOnRedirect));
 	}
 
